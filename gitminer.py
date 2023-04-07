@@ -10,7 +10,9 @@ little_labels = dict(with_labels=True, font_size=7)
 medium_labels = dict(with_labels=True, font_size=7)
 
 
-def graph_file_to_file(git_repo, earliest=datetime.min, latest=datetime.max):
+def graph_file_to_file(git_repo, earliest=None, latest=None):
+    earliest = earliest or datetime.fromtimestamp(0).astimezone()
+    latest = latest or datetime.today().astimezone()
     graph = nx.Graph()
     for commit in git_repo.iter_commits():
         if not earliest <= commit.committed_datetime <= latest:
@@ -34,7 +36,9 @@ class CommitNode(NamedTuple):
     timestamp: datetime
 
 
-def graph_commit_to_file(repo, earliest=datetime.min, latest=datetime.max):
+def graph_commit_to_file(repo, earliest=None, latest=None):
+    earliest = earliest or datetime.fromtimestamp(0).astimezone()
+    latest = latest or datetime.today().astimezone()
     graph = nx.DiGraph()
     commit: Commit
     for commit in repo.iter_commits():
