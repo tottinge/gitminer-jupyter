@@ -10,10 +10,12 @@ little_labels = dict(with_labels=True, font_size=7)
 medium_labels = dict(with_labels=True, font_size=7)
 
 
-def graph_file_to_file(git_repo):
+def graph_file_to_file(git_repo, earliest=datetime.min, latest=datetime.max):
     graph = nx.Graph()
-    for current_commit in git_repo.iter_commits():
-        file_combos = combinations(current_commit.stats.files, 2)
+    for commit in git_repo.iter_commits():
+        if not earliest <= commit.committed_datetime <= latest:
+            continue
+        file_combos = combinations(commit.stats.files, 2)
         for (left, right) in file_combos:
             if (left, right) in graph.edges:
                 data = graph.get_edge_data(left, right)
@@ -21,8 +23,8 @@ def graph_file_to_file(git_repo):
             else:
                 graph.add_edge(left, right,
                                count=1,
-                               timestamp=current_commit.committed_datetime,
-                               hash=current_commit.binsha)
+                               timestamp=commit.committed_datetime,
+                               hash=commit.binsha)
     return graph
 
 
@@ -32,31 +34,48 @@ class CommitNode(NamedTuple):
     timestamp: datetime
 
 
-def graph_commit_to_file(repo):
+def graph_commit_to_file(repo, earliest=datetime.min, latest=datetime.max):
     graph = nx.DiGraph()
     commit: Commit
     for commit in repo.iter_commits():
+        if not earliest <= commit.committed_datetime <=latest:
+            continue
         item = CommitNode(commit.hexsha, commit.message, commit.committed_datetime)
         for filename in commit.stats.files:
             graph.add_edge(item, filename)
     return graph
 
 
-# Organize commit data into structures in nx
-repo = Repo("quizzology")
-repo_graph = graph_file_to_file(repo)
-commit_graph = graph_commit_to_file(repo)
-
-
 # Most commonly committed files
 def count_commits(commit_to_file_graph):
     return Counter(
         name
-        for name, _ in commit_to_file_graph.edges
+        for commit, name in commit_to_file_graph.edges
     )
 
 
-file_commits = count_commits(commit_graph)
-print("Most common commits (top 10):")
-for filename, count in file_commits.most_common()[:10]:
-    print(f'{filename}: {count}')
+def print_most_common_commits(commit_to_file_graph):
+    file_commits = count_commits(commit_to_file_graph)
+    print("Most commits (top 10):")
+    for filename, count in file_commits.most_common()[:10]:
+        print(f'{filename}: {count}')
+
+
+def print_most_connected(file_to_file_graph):
+    counted_connections = list(file_to_file_graph.degree())
+    ordered = sorted(counted_connections, reverse=True, key=lambda x: x[1])
+    print("Top ten most connected files")
+    for filename, count in ordered[:10]:
+        print(f'{filename} {count}')
+    print()
+
+def main():
+    repo = Repo("quizzology")
+    repo_graph = graph_file_to_file(repo)
+    commit_graph = graph_commit_to_file(repo)
+    print_most_connected(repo_graph)
+    print_most_common_commits(commit_graph)
+
+
+if __name__ == '__main__':
+    main()
