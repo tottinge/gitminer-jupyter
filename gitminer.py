@@ -42,7 +42,7 @@ def graph_commit_to_file(repo, earliest=None, latest=None):
     graph = nx.DiGraph()
     commit: Commit
     for commit in repo.iter_commits():
-        if not earliest <= commit.committed_datetime <=latest:
+        if not earliest <= commit.committed_datetime <= latest:
             continue
         item = CommitNode(commit.hexsha, commit.message, commit.committed_datetime)
         for filename in commit.stats.files:
@@ -58,6 +58,12 @@ def count_commits(commit_to_file_graph):
     )
 
 
+def count_connections(file_to_file_graph):
+    counted_connections = list(file_to_file_graph.degree())
+    ordered = sorted(counted_connections, reverse=True, key=lambda x: x[1])
+    return ordered
+
+
 def print_most_common_commits(commit_to_file_graph):
     file_commits = count_commits(commit_to_file_graph)
     print("Most commits (top 10):")
@@ -66,12 +72,12 @@ def print_most_common_commits(commit_to_file_graph):
 
 
 def print_most_connected(file_to_file_graph):
-    counted_connections = list(file_to_file_graph.degree())
-    ordered = sorted(counted_connections, reverse=True, key=lambda x: x[1])
+    ordered = count_connections(file_to_file_graph)
     print("Top ten most connected files")
     for filename, count in ordered[:10]:
         print(f'{filename} {count}')
     print()
+
 
 def main():
     repo = Repo("quizzology")
