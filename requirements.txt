@@ -2,3 +2,4 @@ GitPython
 networkx
 matplotlib
 jupyter
+scipy
