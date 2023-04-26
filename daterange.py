@@ -17,5 +17,5 @@ class DateRange(NamedTuple):
         range_start = datetime.combine(back_then.date(), FIRST_SECOND).astimezone()
         return DateRange(range_start, range_end)
 
-    def includes(self, param: datetime):
-        return self.start_time <= param <= self.end_time
+    def includes(self, target: datetime):
+        return self.start_time <= target <= self.end_time
