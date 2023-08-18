@@ -1,7 +1,7 @@
 from collections import Counter
 from datetime import datetime
 from itertools import combinations
-from typing import NamedTuple
+from typing import NamedTuple, Any
 
 import networkx as nx
 from git import Repo, Commit
@@ -12,7 +12,20 @@ little_labels = dict(with_labels=True, font_size=7)
 medium_labels = dict(with_labels=True, font_size=7)
 
 
-def graph_file_to_file(git_repo, earliest=None, latest=None):
+def graph_file_to_file(git_repo: Repo, earliest=None, latest=None) -> nx.Graph:
+    """
+    Interestingly, I've not test-driven this.
+    It reads commit records, which are pretty rich data.
+    I explored those with a repl to learn how that library
+    works. I don't need to test that library.
+
+    It does a big transformation, though, going from commits
+    with commits.stats.files - this is testable.
+
+    It produces an NetworkX 'graph' based on the file relationships
+    to the commit.
+
+    """
     earliest = earliest or datetime.fromtimestamp(0).astimezone()
     latest = latest or datetime.today().astimezone()
     graph = nx.Graph()
@@ -38,7 +51,7 @@ class CommitNode(NamedTuple):
     timestamp: datetime
 
 
-def graph_commit_to_file(repo, earliest=None, latest=None):
+def graph_commit_to_file(repo: Repo, earliest: datetime = None, latest: datetime = None) -> nx.DiGraph:
     earliest = earliest or datetime.fromtimestamp(0).astimezone()
     latest = latest or datetime.today().astimezone()
     graph = nx.DiGraph()
@@ -53,39 +66,27 @@ def graph_commit_to_file(repo, earliest=None, latest=None):
 
 
 # Most commonly committed files
-def count_commits(commit_to_file_graph):
+def count_commits(commit_to_file_graph: nx.Graph) -> Counter:
     return Counter(
         name
         for commit, name in commit_to_file_graph.edges
     )
 
 
-def version_a(candidates, criteria):
-    result = []
-    for candidate in candidates:
-        if criteria.passes(candidate):
-            result.append(candidate)
-    return result
-
-
-def version_b(candidates, criteria):
-    return [c for c in candidates if criteria.passes(c)]
-
-
-def count_connections(file_to_file_graph):
+def count_connections(file_to_file_graph: nx.Graph) -> list[tuple[Any]]:
     counted_connections = list(file_to_file_graph.degree())
     ordered = sorted(counted_connections, reverse=True, key=lambda x: x[1])
     return ordered
 
 
-def print_most_common_commits(commit_to_file_graph):
+def print_most_common_commits(commit_to_file_graph: nx.Graph):
     file_commits = count_commits(commit_to_file_graph)
     print("Most commits (top 10):")
     for filename, count in file_commits.most_common()[:10]:
         print(f'{filename}: {count}')
 
 
-def print_most_connected(file_to_file_graph):
+def print_most_connected(file_to_file_graph: nx.Graph):
     ordered = count_connections(file_to_file_graph)
     print("Top ten most connected files")
     for filename, count in ordered[:10]:
@@ -103,7 +104,7 @@ def build_time_limited_commit_graph(original: nx.DiGraph, period: DateRange):
     )
 
 
-def get_repo_commits_graph(repository_path):
+def get_repo_commits_graph(repository_path: str):
     repo = Repo(repository_path)
     commit_graph = graph_commit_to_file(repo)
     return commit_graph
@@ -114,25 +115,22 @@ def main(repository_path):
     This is a sketch area, nothing end-user useful.
     """
     repo = Repo(repository_path)
-    # repo_graph = graph_file_to_file(repo)
-    # print_most_connected(repo_graph)
     commit_graph = graph_commit_to_file(repo)
     print("Overall:")
     print_most_common_commits(commit_graph)
 
-    print("Last 30 Days")
+    print("\n\n" + "*" * 40 + "Last 30 Days")
     desired_period = DateRange.last30d(datetime(2022, 9, 1, 12, 00, 23))
     time_limited = build_time_limited_commit_graph(commit_graph, desired_period)
     print_most_common_commits(time_limited)
-    return commit_graph, time_limited
 
 
-def file_pairings_from_commit_graph(commit_graph):
+def file_pairings_from_commit_graph(commit_graph: nx.Graph):
     for commit in commit_graph.nodes:
         neighbors = list(commit_graph.neighbors(commit))
         if not neighbors:
             continue
-        for pairing in combinations(neighbors,2):
+        for pairing in combinations(neighbors, 2):
             yield pairing
 
 
