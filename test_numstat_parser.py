@@ -156,7 +156,7 @@ Date:   Mon Jun 12 16:09:43 2023 +0200
         actual = parser.filestats
         self.assertListEqual(expected, actual)
         self.assertTrue(parser.can_emit)
-        commit = parser.emit()
+        commit, files = parser.emit()
 
 if __name__ == '__main__':
     unittest.main()

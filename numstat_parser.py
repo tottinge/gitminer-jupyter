@@ -2,6 +2,8 @@ import re
 from datetime import datetime
 from typing import Optional
 
+from gitminer import CommitNode
+
 
 class ReadyState:
     def feed(self, sm, line):
@@ -75,27 +77,55 @@ class CollectingFileStatsState:
 class NumstatParser:
     def __init__(self):
         self.state = ReadyState()
-        self.hash: Optional[str] = None
-        self.author: Optional[str] = None
-        self.date: Optional[datetime] = None
-        self.comment: Optional[str] = None
+        self.commit = CommitNode('', '', datetime.min)
         self.filestats = []
         self.can_emit = 0
 
+    @property
+    def hash(self):
+        return self.commit.hash
+
+    @hash.setter
+    def hash(self, var):
+        self.commit.hash = var
+
+    @property
+    def author(self):
+        return self.commit.author
+
+    @author.setter
+    def author(self, var):
+        self.commit.author = var
+
+    @property
+    def date(self):
+        return self.commit.date
+
+    @date.setter
+    def date(self, val):
+        self.commit.date = val
+
     def has_record(self):
         return all([
-            self.hash,
-            self.author,
-            self.date,
-            self.comment
+            self.commit.hash,
+            self.commit.author,
+            self.commit.message,
+            self.can_emit
         ])
 
     def feed(self, line):
         self.state.feed(self, line)
 
     def emit(self):
-        # To implement next
-        pass
+        commit = CommitNode(self.hash, self.comment, self.date)
+        files = self.filestats
+        self.clear_fields()
+        return commit, files
+
+    def clear_fields(self):
+        self.commit = CommitNode()
+        self.can_emit = False
+        self.filestats = []
 
 
 class ParseError(Exception):
