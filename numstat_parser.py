@@ -1,8 +1,17 @@
 import re
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Protocol, Any
 
 from gitminer import CommitNode
+
+
+class ParseError(Exception):
+    ...
+
+
+class NumstatParserState(Protocol):
+    def feed(self, sm: Any, line: str) -> None:
+        ...
 
 
 def read_all_commits(source):
@@ -15,78 +24,9 @@ def read_all_commits(source):
         yield parser.emit()
 
 
-class ReadyState:
-    def feed(self, sm, line):
-        if not line.strip():
-            return
-        if line.startswith("commit"):
-            sm.can_emit = False
-            sm.hash = line.split()[-1]
-            sm.state = ReadyForAuthor()
-        else:
-            raise ParseError()
-
-
-class ReadyForAuthor:
-    expected = re.compile(r"[Aa]uthor: .* <(.*)>")
-
-    def feed(self, sm, line):
-        line = line.strip()
-        if not (m := self.expected.match(line)):
-            raise ParseError()
-        sm.author = m[1]
-        sm.state = ReadyForDateState()
-
-
-class ReadyForDateState:
-    git_format = "%a %b %d %H:%M:%S %Y %z"
-
-    def feed(self, sm, line: str):
-        if not line.startswith('Date:'):
-            raise ParseError()
-        _, date_part = line.split(':', 1)
-        sm.date = datetime.strptime(date_part.strip(), self.git_format)
-        sm.state = CollectingCommentState()
-
-
-class CollectingCommentState:
-    def __init__(self):
-        self.collecting: Optional[str] = None
-
-    def feed(self, sm, line: str):
-        if line.strip() == '':
-            if self.collecting is None:
-                return
-            sm.comment = self.collecting
-            sm.state = CollectingFileStatsState()
-        if line.startswith('  '):
-            usable = line.strip()
-            self.collecting = (usable
-                               if self.collecting is None
-                               else "\n".join([self.collecting, usable])
-                               )
-
-
-class CollectingFileStatsState:
-    def __init__(self):
-        self.collected = []
-
-    def feed(self, sm, line: str):
-        if line.strip() == "":
-            sm.filestats = self.collected
-            sm.state = ReadyState()
-            sm.can_emit = True;
-            return
-        try:
-            _, _, filename = line.split()
-            self.collected.append(filename)
-        except ValueError as err:
-            raise ParseError(err)
-
-
 class NumstatParser:
     def __init__(self):
-        self.state = ReadyState()
+        self.state: NumstatParserState = ReadyState()
         self.commit = CommitNode('', '', datetime.min)
         self.filestats = []
         self.can_emit = 0
@@ -109,11 +49,19 @@ class NumstatParser:
 
     @property
     def date(self):
-        return self.commit.date
+        return self.commit.timestamp
 
     @date.setter
     def date(self, val):
-        self.commit.date = val
+        self.commit.timestamp = val
+
+    @property
+    def comment(self):
+        return self.commit.message
+
+    @comment.setter
+    def comment(self, var):
+        self.commit.message = var
 
     def has_record(self):
         return all([
@@ -138,5 +86,70 @@ class NumstatParser:
         self.filestats = []
 
 
-class ParseError(Exception):
-    ...
+class ReadyState:
+    def feed(self, sm: NumstatParser, line: str) -> None:
+        if not line.strip():
+            return
+        if line.startswith("commit"):
+            sm.can_emit = False
+            sm.hash = line.split()[-1]
+            sm.state = ReadyForAuthor()
+        else:
+            raise ParseError()
+
+
+class ReadyForAuthor:
+    expected = re.compile(r"[Aa]uthor: .* <(.*)>")
+
+    def feed(self, sm: NumstatParser, line: str):
+        line = line.strip()
+        if not (m := self.expected.match(line)):
+            raise ParseError()
+        sm.author = m[1]
+        sm.state = ReadyForDateState()
+
+
+class ReadyForDateState:
+    git_format = "%a %b %d %H:%M:%S %Y %z"
+
+    def feed(self, sm: NumstatParser, line: str) -> None:
+        if not line.startswith('Date:'):
+            raise ParseError()
+        _, date_part = line.split(':', 1)
+        sm.date = datetime.strptime(date_part.strip(), self.git_format)
+        sm.state = CollectingCommentState()
+
+
+class CollectingCommentState:
+    def __init__(self):
+        self.collecting: Optional[str] = None
+
+    def feed(self, sm: NumstatParser, line: str) -> None:
+        if line.strip() == '':
+            if self.collecting is None:
+                return
+            sm.comment = self.collecting
+            sm.state = CollectingFileStatsState()
+        if line.startswith('  '):
+            usable = line.strip()
+            self.collecting = (usable
+                               if self.collecting is None
+                               else "\n".join([self.collecting, usable])
+                               )
+
+
+class CollectingFileStatsState:
+    def __init__(self):
+        self.collected = []
+
+    def feed(self, sm: NumstatParser, line: str) -> None:
+        if line.strip() == "":
+            sm.filestats = self.collected
+            sm.state = ReadyState()
+            sm.can_emit = True
+            return
+        try:
+            _, _, filename = line.split()
+            self.collected.append(filename)
+        except ValueError as err:
+            raise ParseError(err)
