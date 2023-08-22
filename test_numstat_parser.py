@@ -1,7 +1,9 @@
 import unittest
+from datetime import date
+from textwrap import dedent
 
 from numstat_parser import ReadyState, ReadyForAuthor, ReadyForDateState, CollectingCommentState, \
-    CollectingFileStatsState, NumstatParser, ParseError
+    CollectingFileStatsState, NumstatParser, ParseError, read_all_commits
 
 
 class InReadyState(unittest.TestCase):
@@ -138,11 +140,17 @@ class InCollectingFileState(unittest.TestCase):
         self.assertEqual(['binary.file'], parser.filestats)
 
 
-class RecordHandling(unittest.TestCase):
-    def test_reads_one_record_with_file_content(self):
-        parser = NumstatParser()
-        for line in (
-'''commit 8e0d5ec0e23ca9684cff95e204e682cbe9386231
+three_records = """
+
+commit df263690d1acae6d2b587e2c9c51fcbb9b24e036
+Author: Perry Reid <wpreid@gmail.com>
+Date:   Tue Jun 13 10:00:18 2023 -0500
+
+    Updated to the latest chromedriver
+
+-	-	webdrivers/darwin/chromedriver
+
+commit 8e0d5ec0e23ca9684cff95e204e682cbe9386231
 Author: Tim Ottinger <tottinge@industriallogic.com>
 Date:   Mon Jun 12 16:09:43 2023 +0200
 
@@ -150,13 +158,49 @@ Date:   Mon Jun 12 16:09:43 2023 +0200
 
 9	1	precommit.md
 
-''').split('\n'):
+commit 189ec9b8ebf9806d3d16c3b1c55f5ccf3874eb9c
+Author: Tim Ottinger <tottinge@industriallogic.com>
+Date:   Mon Jun 12 16:05:02 2023 +0200
+
+    chore: got precommit hooks using black & bandit
+
+7	0	.pre-commit-config.yaml
+2	0	devtools.txt
+49	0	precommit.md
+0	9	test_delme.py
+
+"""
+
+
+class RecordHandling(unittest.TestCase):
+
+    def test_reads_one_record_with_file_content(self):
+        parser = NumstatParser()
+        for line in (dedent('''
+                    commit 8e0d5ec0e23ca9684cff95e204e682cbe9386231
+                    Author: Tim Ottinger <tottinge@industriallogic.com>
+                    Date:   Mon Jun 12 16:09:43 2023 +0200
+                    
+                        doc: improve the precommit.md
+                    
+                    9	1	precommit.md
+                ''')).split('\n'):
             parser.feed(line)
-        expected = ['precommit.md']
-        actual = parser.filestats
-        self.assertListEqual(expected, actual)
         self.assertTrue(parser.can_emit)
         commit, files = parser.emit()
+        self.assertEqual('8e0d5ec0e23ca9684cff95e204e682cbe9386231', commit.hash)
+        self.assertEqual('doc: improve the precommit.md', commit.message)
+        record_date = date(2023, 6, 12)
+        self.assertEqual(record_date, commit.timestamp.date())
+        self.assertEqual(['precommit.md'], files)
+
+    def test_series_of_records(self):
+        output = [record for record in read_all_commits(three_records.split('\n'))]
+        records = [record for (record,_) in output]
+        filelist = [files for (_, files) in output]
+        self.assertEqual(3,len(records))
+        self.assertEqual([1,1,4], [len(x) for x in filelist])
+
 
 if __name__ == '__main__':
     unittest.main()

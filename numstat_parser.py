@@ -5,6 +5,16 @@ from typing import Optional
 from gitminer import CommitNode
 
 
+def read_all_commits(source):
+    parser = NumstatParser()
+    for line in source:
+        parser.feed(line.rstrip())
+        if parser.can_emit:
+            yield parser.emit()
+    if parser.can_emit:
+        yield parser.emit()
+
+
 class ReadyState:
     def feed(self, sm, line):
         if not line.strip():
