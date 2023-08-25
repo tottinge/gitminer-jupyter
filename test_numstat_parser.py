@@ -3,7 +3,7 @@ from datetime import date
 from textwrap import dedent
 
 from numstat_parser import ReadyState, ReadyForAuthor, ReadyForDateState, CollectingCommentState, \
-    CollectingFileStatsState, NumstatParser, ParseError, read_all_commits
+    CollectingFileStatsState, NumstatParser, ParseError, read_all_commits, IgnoringRecord
 
 
 class InReadyState(unittest.TestCase):
@@ -60,6 +60,18 @@ class InParseState(unittest.TestCase):
         self.assertIsInstance(p.state, CollectingCommentState)
 
 
+class InIgnoreState(unittest.TestCase):
+    def test_ignoring_just_enough(self):
+        parser = NumstatParser()
+        parser.state = IgnoringRecord()
+        parser.feed("nonsense")
+        parser.feed("     first empty follows")
+        parser.feed("")
+        parser.feed("second empty follows")
+        parser.feed("")
+        self.assertIsInstance(parser.state, ReadyState)
+
+
 class InCollectingCommentState(unittest.TestCase):
     def setUp(self) -> None:
         parser = NumstatParser()
@@ -90,6 +102,20 @@ class InCollectingCommentState(unittest.TestCase):
         self.assertEqual(self.parser.comment, expected)
         self.assertIsInstance(self.parser.state, CollectingFileStatsState)
 
+        def test_accepts_multiline_with_blanks(self):
+            comments = [
+                "    this is the first line with an empty line following",
+                "    ",
+                "    feat: Changes relates to implementing a user store in Mongo",
+                "    ",
+                "    ",
+                "    test: wrapped test around code like a warm python"
+                ""
+            ]
+            for comment in comments:
+                self.parser.feed(comment)
+            self.assertEqual([], self.parser.comment)
+            self.assertIsInstance(self.parser.state, CollectingFileStatsState)
 
 class InCollectingFileState(unittest.TestCase):
     def setUp(self) -> None:
@@ -174,6 +200,20 @@ Date:   Mon Jun 12 16:05:02 2023 +0200
 
 class RecordHandling(unittest.TestCase):
 
+    def test_ignores_merge_records(self):
+        parser = NumstatParser()
+        for line in dedent('''
+            commit c689dff744d8673640e3efeaed530374ef4c0bc3
+            Merge: fae63c71 7f627b50
+            Author: Cecil Williams <cecil.g.williams@gmail.com>
+            Date:   Wed Jul 26 12:48:20 2023 -0500
+            
+                Merge branch 'contact-page'
+            
+        ''').split('\n'):
+            parser.feed(line)
+        self.assertIsInstance(parser.state, ReadyState)
+
     def test_reads_one_record_with_file_content(self):
         parser = NumstatParser()
         for line in (dedent('''
@@ -196,10 +236,10 @@ class RecordHandling(unittest.TestCase):
 
     def test_series_of_records(self):
         output = [record for record in read_all_commits(three_records.split('\n'))]
-        records = [record for (record,_) in output]
+        records = [record for (record, _) in output]
         filelist = [files for (_, files) in output]
-        self.assertEqual(3,len(records))
-        self.assertEqual([1,1,4], [len(x) for x in filelist])
+        self.assertEqual(3, len(records))
+        self.assertEqual([1, 1, 4], [len(x) for x in filelist])
 
 
 if __name__ == '__main__':

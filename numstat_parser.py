@@ -1,6 +1,6 @@
 import re
 from datetime import datetime
-from typing import Optional, Protocol, Any
+from typing import Optional, Protocol, Any, Tuple, List
 
 from gitminer import CommitNode
 
@@ -9,19 +9,38 @@ class ParseError(Exception):
     ...
 
 
+def read_whole_commit(source):
+    """
+    Gitlogs are weird. sometimes they forget to add
+    newlines, sometimes they leave out sections, and
+    sometimes they are just a little wrong one way or another
+    So, we read commit-to-commit first.
+    """
+    holding = []
+    for line in source:
+        if line.startswith('commit'):
+            if holding:
+                yield holding
+                holding = []
+        holding.append(line)
+    if holding:
+        yield holding
+
 class NumstatParserState(Protocol):
     def feed(self, sm: Any, line: str) -> None:
         ...
 
 
 def read_all_commits(source):
-    parser = NumstatParser()
-    for line in source:
-        parser.feed(line.rstrip())
+    for block in read_whole_commit(source):
+        parser = NumstatParser()
+        for line in block:
+            try:
+                parser.feed(line.rstrip('\r\n'))
+            except Exception as err:
+                print(err)
         if parser.can_emit:
             yield parser.emit()
-    if parser.can_emit:
-        yield parser.emit()
 
 
 class NumstatParser:
@@ -74,7 +93,7 @@ class NumstatParser:
     def feed(self, line):
         self.state.feed(self, line)
 
-    def emit(self):
+    def emit(self) -> Tuple[CommitNode, List[str]]:
         commit = CommitNode(self.hash, self.comment, self.date)
         files = self.filestats
         self.clear_fields()
@@ -94,8 +113,10 @@ class ReadyState:
             sm.can_emit = False
             sm.hash = line.split()[-1]
             sm.state = ReadyForAuthor()
+        elif line.strip().startswith("#"):
+            return
         else:
-            raise ParseError()
+            raise ParseError(f"Expecting commit, surprised by [{line}]")
 
 
 class ReadyForAuthor:
@@ -103,10 +124,26 @@ class ReadyForAuthor:
 
     def feed(self, sm: NumstatParser, line: str):
         line = line.strip()
+        if line.startswith("Merge:"):
+            sm.state = IgnoringRecord()
+            return
         if not (m := self.expected.match(line)):
-            raise ParseError()
+            raise ParseError(f"looking for author in [{line}], hash is {sm.hash}")
         sm.author = m[1]
         sm.state = ReadyForDateState()
+
+
+class IgnoringRecord():
+
+    def __init__(self):
+        self.blanks_seen = 0
+
+    def feed(self, sm, line):
+        sm.hash = ''
+        if line.strip() == "":
+            self.blanks_seen += 1
+        if self.blanks_seen == 2:
+            sm.state = ReadyState()
 
 
 class ReadyForDateState:
@@ -125,12 +162,12 @@ class CollectingCommentState:
         self.collecting: Optional[str] = None
 
     def feed(self, sm: NumstatParser, line: str) -> None:
-        if line.strip() == '':
+        if line == '':
             if self.collecting is None:
                 return
             sm.comment = self.collecting
             sm.state = CollectingFileStatsState()
-        if line.startswith('  '):
+        elif line[0].isspace():
             usable = line.strip()
             self.collecting = (usable
                                if self.collecting is None
@@ -139,17 +176,22 @@ class CollectingCommentState:
 
 
 class CollectingFileStatsState:
+    pattern = re.compile(r"(?:\d+|-)\s+(?:\d+|-)\s+(.*)$")
+
     def __init__(self):
         self.collected = []
 
     def feed(self, sm: NumstatParser, line: str) -> None:
-        if line.strip() == "":
+        if line == "":
             sm.filestats = self.collected
             sm.state = ReadyState()
             sm.can_emit = True
             return
         try:
-            _, _, filename = line.split()
+            m = self.pattern.match(line)
+            if not m:
+                raise ParseError(f"File not in [{line}]")
+            _, _, filename = line.split(maxsplit=2)
             self.collected.append(filename)
         except ValueError as err:
-            raise ParseError(err)
+            raise ParseError(f'splitting [{line}] in 3s')

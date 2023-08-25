@@ -2,7 +2,7 @@ from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime
 from itertools import combinations
-from typing import NamedTuple, Any, Optional
+from typing import Any
 
 import networkx as nx
 from git import Repo, Commit
@@ -44,6 +44,7 @@ def graph_file_to_file(git_repo: Repo, earliest=None, latest=None) -> nx.Graph:
                                timestamp=commit.committed_datetime,
                                hash=commit.binsha)
     return graph
+
 
 @dataclass
 class CommitNode:
