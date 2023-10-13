@@ -102,20 +102,22 @@ class InCollectingCommentState(unittest.TestCase):
         self.assertEqual(self.parser.comment, expected)
         self.assertIsInstance(self.parser.state, CollectingFileStatsState)
 
-        def test_accepts_multiline_with_blanks(self):
-            comments = [
-                "    this is the first line with an empty line following",
-                "    ",
-                "    feat: Changes relates to implementing a user store in Mongo",
-                "    ",
-                "    ",
-                "    test: wrapped test around code like a warm python"
-                ""
-            ]
-            for comment in comments:
-                self.parser.feed(comment)
-            self.assertEqual([], self.parser.comment)
-            self.assertIsInstance(self.parser.state, CollectingFileStatsState)
+    def test_accepts_multiline_with_blanks(self):
+        comments = [
+            "    this is the first line with an empty line following",
+            "    ",
+            "    feat: Changes relates to implementing a user store in Mongo",
+            "    ",
+            "    ",
+            "    test: wrapped test around code like a warm python",
+            ""
+        ]
+        for comment in comments:
+            self.parser.feed(comment)
+        self.assertIn('the first', self.parser.comment)
+        self.assertIn('warm python', self.parser.comment)
+        self.assertIsInstance(self.parser.state, CollectingFileStatsState, f"Got {self.parser.state}")
+
 
 class InCollectingFileState(unittest.TestCase):
     def setUp(self) -> None:

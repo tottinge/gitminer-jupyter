@@ -11,7 +11,7 @@ class ParseError(Exception):
 
 def read_whole_commit(source):
     """
-    Gitlogs are weird. sometimes they forget to add
+    Git logs are weird. sometimes they forget to add
     newlines, sometimes they leave out sections, and
     sometimes they are just a little wrong one way or another
     So, we read commit-to-commit first.
@@ -25,6 +25,7 @@ def read_whole_commit(source):
         holding.append(line)
     if holding:
         yield holding
+
 
 class NumstatParserState(Protocol):
     def feed(self, sm: Any, line: str) -> None:
@@ -94,7 +95,7 @@ class NumstatParser:
         self.state.feed(self, line)
 
     def emit(self) -> Tuple[CommitNode, List[str]]:
-        commit = CommitNode(self.hash, self.comment, self.date)
+        commit = self.commit
         files = self.filestats
         self.clear_fields()
         return commit, files
@@ -133,7 +134,7 @@ class ReadyForAuthor:
         sm.state = ReadyForDateState()
 
 
-class IgnoringRecord():
+class IgnoringRecord:
 
     def __init__(self):
         self.blanks_seen = 0
@@ -194,4 +195,4 @@ class CollectingFileStatsState:
             _, _, filename = line.split(maxsplit=2)
             self.collected.append(filename)
         except ValueError as err:
-            raise ParseError(f'splitting [{line}] in 3s')
+            raise ParseError(f'splitting [{line}] in 3s, {err}')
