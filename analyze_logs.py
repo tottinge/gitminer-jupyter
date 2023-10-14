@@ -1,6 +1,8 @@
 import sys
-from collections import Counter
+from collections import Counter, defaultdict
 from itertools import combinations
+from os.path import dirname
+from typing import DefaultDict
 
 import networkx as nx
 
@@ -33,22 +35,24 @@ def build_weighted_author_graph(source=sys.stdin):
 def build_graphs(source=sys.stdin):
     file_to_file = nx.Graph()
     commits_to_file = nx.DiGraph()
+    author_to_dir = Counter()
     for commit, files in read_all_commits(source):
         for filename in files:
             commits_to_file.add_edge(
                 commit.hash,
                 filename
             )
+            author_to_dir[(commit.author, dirname(filename))]+=1
         if len(files) < 2:
             continue
         for left, right in combinations(files, 2):
             file_to_file.add_edge(left, right)
-    return file_to_file, commits_to_file
+    return file_to_file, commits_to_file, author_to_dir
 
 
 def do_reporting():
-    weighted_file_linkages = build_weighted_file_graph()
-    file_to_file, commits_to_file = build_graphs()
+    # weighted_file_linkages = build_weighted_file_graph()
+    file_to_file, commits_to_file, author_to_dir = build_graphs()
 
     commit_counter = count_commits(commits_to_file)
     print("\nMost committed files")
@@ -71,7 +75,14 @@ def do_reporting():
         if size > 10:
             print(f"     ... and {size - 10} more.")
 
-    print("\nEXPERIMENT")
+    print("\nDirectory to Author (experimental, with abuse potential)")
+    accumulator = defaultdict(list)
+    for (author,module_dir),count in author_to_dir.most_common(100):
+        accumulator[module_dir].append(author)
+    for (module_dir, authors) in sorted(accumulator.items()):
+        print(f"./{module_dir}:")
+        for author in sorted(authors):
+            print(f"   {author}")
     # Note - person-to-file or person-to-directory mappings?
     # Can we see who the frequent maintainers are for a given period?
     # Will this indicate contention?
