@@ -2,7 +2,6 @@ import sys
 from collections import Counter, defaultdict
 from itertools import combinations
 from os.path import dirname
-from typing import DefaultDict
 
 import networkx as nx
 
@@ -32,7 +31,7 @@ def build_weighted_author_graph(source=sys.stdin):
     return weighted_author_to_file
 
 
-def build_graphs(source=sys.stdin):
+def build_all_graphs_from_one_stream(source=sys.stdin):
     file_to_file = nx.Graph()
     commits_to_file = nx.DiGraph()
     author_to_dir = Counter()
@@ -42,7 +41,7 @@ def build_graphs(source=sys.stdin):
                 commit.hash,
                 filename
             )
-            author_to_dir[(commit.author, dirname(filename))]+=1
+            author_to_dir[(commit.author, dirname(filename))] += 1
         if len(files) < 2:
             continue
         for left, right in combinations(files, 2):
@@ -51,8 +50,7 @@ def build_graphs(source=sys.stdin):
 
 
 def do_reporting():
-    # weighted_file_linkages = build_weighted_file_graph()
-    file_to_file, commits_to_file, author_to_dir = build_graphs()
+    file_to_file, commits_to_file, author_to_dir = build_all_graphs_from_one_stream()
 
     commit_counter = count_commits(commits_to_file)
     print("\nMost committed files")
@@ -77,7 +75,7 @@ def do_reporting():
 
     print("\nDirectory to Author (experimental, with abuse potential)")
     accumulator = defaultdict(list)
-    for (author,module_dir),count in author_to_dir.most_common(100):
+    for (author, module_dir), count in author_to_dir.most_common(100):
         accumulator[module_dir].append(author)
     for (module_dir, authors) in sorted(accumulator.items()):
         print(f"./{module_dir}:")
