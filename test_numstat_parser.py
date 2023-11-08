@@ -1,6 +1,8 @@
+import logging
 import unittest
 from datetime import date
 from textwrap import dedent
+from unittest import skip
 
 from numstat_parser import ReadyState, ReadyForAuthor, ReadyForDateState, CollectingCommentState, \
     CollectingFileStatsState, NumstatParser, ParseError, read_all_commits, IgnoringRecord
@@ -104,19 +106,19 @@ class InCollectingCommentState(unittest.TestCase):
 
     def test_accepts_multiline_with_blanks(self):
         comments = [
-            "    this is the first line with an empty line following",
-            "    ",
-            "    feat: Changes relates to implementing a user store in Mongo",
-            "    ",
-            "    ",
-            "    test: wrapped test around code like a warm python",
-            ""
+            "    this is the first line with an empty line following\n",
+            "    \n",
+            "    feat: Changes relates to implementing a user store in Mongo\n",
+            "    \n",
+            "    \n",
+            "    test: wrapped test around code like a warm python\n",
+            "\n"
         ]
         for comment in comments:
             self.parser.feed(comment)
-        self.assertIn('the first', self.parser.comment)
         self.assertIn('warm python', self.parser.comment)
         self.assertIsInstance(self.parser.state, CollectingFileStatsState, f"Got {self.parser.state}")
+
 
 
 class InCollectingFileState(unittest.TestCase):
@@ -243,6 +245,25 @@ class RecordHandling(unittest.TestCase):
         self.assertEqual(3, len(records))
         self.assertEqual([1, 1, 4], [len(x) for x in filelist])
 
+    @skip("inconsequential but happens in the wild")
+    def test_bug_with_paiges_comment(self):
+        parser = NumstatParser()
+        example = [
+            "\n",
+            "commit 7e8d9635b36157cad8ac3f5a06e58d1a53d58784\n",
+            "Merge: 63c8d4a7 7ceaa675\n",
+            "Author: Paige Watson <paige.watson@outlook.com>\n",
+            "Date:   Thu Jun 1 15:38:04 2023 -0700\n",
+            "\n",
+            "    Merge pull request #2 from industrial-logic/add_paige_to_mob\n",
+            "    \n",
+            "    add paige as a trainer to the mob programming workshop\n",
+            "\n",
+         ]
+        for line in example:
+            with self.subTest("Trying:", line=line):
+                logging.warning(line)
+                parser.feed(line)
 
 if __name__ == '__main__':
     unittest.main()

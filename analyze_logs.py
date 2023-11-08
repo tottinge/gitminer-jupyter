@@ -5,8 +5,12 @@ from os.path import dirname
 
 import networkx as nx
 
-from gitminer import count_commits, count_connections
+from gitminer import count_commits
 from numstat_parser import read_all_commits
+
+"""
+This is pretty much a junk file that needs rewritten.
+"""
 
 
 def build_weighted_file_graph(source=sys.stdin):
@@ -32,7 +36,14 @@ def build_weighted_author_graph(source=sys.stdin):
 
 
 def build_all_graphs_from_one_stream(source=sys.stdin):
-    file_to_file = nx.Graph()
+    """
+    This is a terrible function. Better: pass in a list of
+    reporter/collectors, each receives a commit and a file list.
+    This function gets simple: it just passes the stream's
+    output to the collectors; the collectors get simple and
+    straightforward.
+    """
+    file_counts = Counter()
     commits_to_file = nx.DiGraph()
     author_to_dir = Counter()
     for commit, files in read_all_commits(source):
@@ -45,33 +56,22 @@ def build_all_graphs_from_one_stream(source=sys.stdin):
         if len(files) < 2:
             continue
         for left, right in combinations(files, 2):
-            file_to_file.add_edge(left, right)
-    return file_to_file, commits_to_file, author_to_dir
+            key = tuple(sorted([left, right]))
+            file_counts[key] += 1
+    return file_counts, commits_to_file, author_to_dir
 
 
 def do_reporting():
-    file_to_file, commits_to_file, author_to_dir = build_all_graphs_from_one_stream()
+    file_counts, commits_to_file, author_to_dir = build_all_graphs_from_one_stream()
 
     commit_counter = count_commits(commits_to_file)
     print("\nMost committed files")
     for (name, count) in commit_counter.most_common(10):
         print(f'    {name} ({count})')
 
-    print("\nMost file-to-file connections")
-    connections = count_connections(file_to_file)
-    for name, count in connections[:10]:
-        print(f'    {name} ({count})')
-
-    print("\nConnected Groups")
-    groups = list(nx.connected_components(file_to_file))
-    print(f"There are {len(groups)} groups identified.")
-    for n, group in enumerate(groups):
-        size = len(group)
-        print(f"{len(group)} in group {n}")
-        for file in list(group)[:10]:
-            print(f"   {file}")
-        if size > 10:
-            print(f"     ... and {size - 10} more.")
+    print("\nMost co-committed files")
+    for (left, right), count in file_counts.most_common(20):
+        print(f'    {left} {right} ({count})')
 
     print("\nDirectory to Author (experimental, with abuse potential)")
     accumulator = defaultdict(list)
@@ -81,10 +81,42 @@ def do_reporting():
         print(f"./{module_dir}:")
         for author in sorted(authors):
             print(f"   {author}")
-    # Note - person-to-file or person-to-directory mappings?
-    # Can we see who the frequent maintainers are for a given period?
-    # Will this indicate contention?
+
+    print("\nHighly Correlated Groups")
+    from statistics import mode, mean, stdev
+    # once is a fluke, twice is a coincidence -- so ignore onesy/twosey
+    raw_counts = [x for x in file_counts.values() if x > 2]
+    # Find the outliers
+    threshold = mean(raw_counts) + stdev(raw_counts)
+    # Give a basis for our outputs...
+    print(
+        f"Threshold:{threshold}, mean: {mean(raw_counts)}, mode: {mode(raw_counts)}, stdev: {stdev(raw_counts)}, max: {max(raw_counts)}")
+    notable = nx.Graph([pair for pair, count in file_counts.items() if count >= threshold])
+    for index, group in enumerate(nx.connected_components(notable)):
+        print(f"Group {index} of size {len(group)}")
+        for file in group:
+            print(f"   {file}")
+    print()
 
 
 if __name__ == '__main__':
     do_reporting()
+
+
+def significant_connections(stream):
+    """
+    This seems to generate a meaningful list of maintenance-coupled
+    components. Whether the connections are "sane" or not requires
+    human intervention at this time.
+    Likely, if the names of the directories are highly dissimilar,
+    it may suggest bad coupling between modules, but that is still
+    something that remains to be seen.
+    """
+    stream = stream or open('./ILSITE.6month.txt')
+    ctr = Counter()
+    for commit, files in read_all_commits(stream):
+        for left, right in combinations(files, 2):
+            ctr[left, right] += 1
+    threshold = max(ctr.values()) / 3
+    notable = nx.Graph([pair for pair, count in ctr.items() if count >= threshold])
+    return list(nx.connected_components(notable))

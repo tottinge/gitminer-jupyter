@@ -1,3 +1,4 @@
+import logging
 import re
 from datetime import datetime
 from typing import Optional, Protocol, Any, Tuple, List
@@ -16,15 +17,15 @@ def read_whole_commit(source):
     sometimes they are just a little wrong one way or another
     So, we read commit-to-commit first.
     """
-    holding = []
+    collected = []
     for line in source:
         if line.startswith('commit'):
-            if holding:
-                yield holding
-                holding = []
-        holding.append(line)
-    if holding:
-        yield holding
+            if collected:
+                yield collected
+                collected = []
+        collected.append(line)
+    if collected:
+        yield collected
 
 
 class NumstatParserState(Protocol):
@@ -37,9 +38,9 @@ def read_all_commits(source):
         parser = NumstatParser()
         for line in block:
             try:
-                parser.feed(line.rstrip('\r\n'))
+                parser.feed(line)
             except Exception as err:
-                print(err)
+                logging.warning(err)
         if parser.can_emit:
             yield parser.emit()
 
@@ -92,7 +93,7 @@ class NumstatParser:
         ])
 
     def feed(self, line):
-        self.state.feed(self, line)
+        self.state.feed(self, line.rstrip('\r\n'))
 
     def emit(self) -> Tuple[CommitNode, List[str]]:
         commit = self.commit
