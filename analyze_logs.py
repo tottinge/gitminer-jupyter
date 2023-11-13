@@ -85,7 +85,7 @@ def do_reporting():
     print("\nHighly Correlated Groups")
     from statistics import mode, mean, stdev
     # once is a fluke, twice is a coincidence -- so ignore onesy/twosey
-    raw_counts = [x for x in file_counts.values() if x > 2]
+    raw_counts = file_counts.values()
     # Find the outliers
     threshold = mean(raw_counts) + stdev(raw_counts)
     # Give a basis for our outputs...

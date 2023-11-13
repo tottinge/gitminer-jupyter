@@ -1,7 +1,7 @@
 import logging
 import re
 from datetime import datetime
-from typing import Optional, Protocol, Any, Tuple, List
+from typing import Optional, Protocol, Any, Tuple, List, Iterable
 
 from gitminer import CommitNode
 
@@ -33,7 +33,7 @@ class NumstatParserState(Protocol):
         ...
 
 
-def read_all_commits(source):
+def read_all_commits(source) -> Iterable[CommitNode]:
     for block in read_whole_commit(source):
         parser = NumstatParser()
         for line in block:
