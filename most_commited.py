@@ -4,7 +4,7 @@ import pandas
 import typer
 
 
-def count_files_in_commits(json_file: str):
+def count_files_in_commits(json_file: str, goal: int):
     """
     This counts things
     """
@@ -12,7 +12,6 @@ def count_files_in_commits(json_file: str):
     counter = Counter()
     for files in p["files"]:
         counter.update(files.keys())
-    goal = 10
     print(f"TOP {goal} most committed files:")
     for filename, commits in counter.most_common(goal):
         print(f"  {commits}: {filename}")
