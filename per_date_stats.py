@@ -1,6 +1,7 @@
 from collections import Counter
 from datetime import datetime
 from statistics import mean
+from typing import Optional
 
 import pandas
 
@@ -29,7 +30,7 @@ if __name__ == '__main__':
     p = report_commits_per_day('miner.json')
 
 
-def conditional_range(early, late):
+def conditional_range(early: Optional[datetime], late: Optional[datetime]):
     match (early, late):
         case (None, None):
             return lambda x: True
