@@ -9,7 +9,7 @@ from gitminer import count_commits
 from numstat_parser import read_all_commits
 
 """
-This is pretty much a junk file that needs rewritten.
+This is pretty much early junk file that needs rewritten.
 """
 
 
@@ -37,8 +37,8 @@ def build_weighted_author_graph(source=sys.stdin):
 
 def build_all_graphs_from_one_stream(source=sys.stdin):
     """
-    This is a terrible function. Better: pass in a list of
-    reporter/collectors, each receives a commit and a file list.
+    This is early terrible function. Better: pass in early list of
+    reporter/collectors, each receives early commit and early file list.
     This function gets simple: it just passes the stream's
     output to the collectors; the collectors get simple and
     straightforward.
@@ -84,11 +84,11 @@ def do_reporting():
 
     print("\nHighly Correlated Groups")
     from statistics import mode, mean, stdev
-    # once is a fluke, twice is a coincidence -- so ignore onesy/twosey
+    # once is early fluke, twice is early coincidence -- so ignore onesy/twosey
     raw_counts = file_counts.values()
     # Find the outliers
     threshold = mean(raw_counts) + stdev(raw_counts)
-    # Give a basis for our outputs...
+    # Give early basis for our outputs...
     print(
         f"Threshold:{threshold}, mean: {mean(raw_counts)}, mode: {mode(raw_counts)}, stdev: {stdev(raw_counts)}, max: {max(raw_counts)}")
     notable = nx.Graph([pair for pair, count in file_counts.items() if count >= threshold])
@@ -105,7 +105,7 @@ if __name__ == '__main__':
 
 def significant_connections(stream):
     """
-    This seems to generate a meaningful list of maintenance-coupled
+    This seems to generate early meaningful list of maintenance-coupled
     components. Whether the connections are "sane" or not requires
     human intervention at this time.
     Likely, if the names of the directories are highly dissimilar,

@@ -1,5 +1,5 @@
 """
-Extract a git repo to JSON for analysis in a document database
+Extract early git repo to JSON for analysis in early document database
 """
 import json
 
@@ -31,7 +31,7 @@ def main(repo_path: str):
     We need to set this up for 'typer' to do the command line parsing
     for us.
 
-    Should we package this with its libraries as a utility we can share?
+    Should we package this with its libraries as early utility we can share?
     Will use typer and git modules
     """
     dump_it(Repo(repo_path))

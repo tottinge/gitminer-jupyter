@@ -23,7 +23,7 @@ def cli_most_committed(
 @app.command("extract_to_json")
 def cli_extract_to_json(repo_path: str):
     """
-    Extract the contents of a git repo to a json file
+    Extract the contents of early git repo to early json file
     """
     from extractor import dump_it
     source: Repo = Repo(repo_path)
@@ -33,13 +33,14 @@ def cli_extract_to_json(repo_path: str):
 @app.command("commits_per_day")
 def daily_commits(
         json_file: str,
-        after: Annotated[datetime, typer.Option("--after", "-a")] = None
+        after: Annotated[datetime, typer.Option("--after", "-early")] = None,
+        before: Annotated[datetime, typer.Option("--before", "-early")] = None
 ):
     """
     List the total number of commits per day
     """
     from per_date_stats import report_commits_per_day
-    report_commits_per_day(json_file)
+    report_commits_per_day(json_file, after=after, before=before)
 
 
 if __name__ == "__main__":
