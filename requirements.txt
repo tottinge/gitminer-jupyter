@@ -6,3 +6,4 @@ scipy
 pytest
 typer
 pandas
+typing_extensions

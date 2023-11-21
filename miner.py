@@ -1,3 +1,6 @@
+#!python3
+from datetime import datetime
+
 import typer
 from git import Repo
 from typing_extensions import Annotated
@@ -27,5 +30,19 @@ def cli_extract_to_json(repo_path: str):
     dump_it(source)
 
 
+@app.command("commits_per_day")
+def daily_commits(
+        json_file: str,
+        after: Annotated[datetime, typer.Option("--after", "-a")] = None
+):
+    """
+    List the total number of commits per day
+    """
+    from per_date_stats import report_commits_per_day
+    report_commits_per_day(json_file)
+
+
 if __name__ == "__main__":
     app()
+
+# Counter(d.date for d in pd.to_datetime(df['Date'])
