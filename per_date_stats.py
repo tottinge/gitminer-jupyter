@@ -4,6 +4,7 @@ from statistics import mean
 from typing import Optional
 
 import pandas
+from pytz import utc
 
 
 def report_commits_per_day(json_file, *, after: datetime = None, before: datetime = None):
@@ -63,3 +64,9 @@ def matching_conditional_range(early: Optional[datetime], late: Optional[datetim
 
 
 conditional_range = matching_conditional_range
+
+
+def elegant_choice(low: Optional[datetime], high: Optional[datetime]):
+    before = low or datetime.min.replace(tzinfo=utc)
+    until = high or datetime.max.replace(tzinfo=utc)
+    return lambda x: before < x < until
