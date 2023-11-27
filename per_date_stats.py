@@ -23,11 +23,10 @@ def report_commits_per_day(json_file, *, after: datetime = None, before: datetim
 
     raw_values = counts.values()
     print(f"Max: {max(raw_values)}, Mean: {mean(raw_values)}, Min: {min(raw_values)}")
-    return p
 
 
 if __name__ == '__main__':
-    commits_counter = report_commits_per_day('miner.json')
+    report_commits_per_day('miner.json')
 
 
 def if_version_of_conditional_range(low_value: Optional[datetime], high_value: Optional[datetime]):
@@ -63,4 +62,4 @@ def matching_conditional_range(early: Optional[datetime], late: Optional[datetim
             return lambda x: start_date.astimezone() < x < end_date.astimezone()
 
 
-conditional_range = if_version_of_conditional_range
+conditional_range = matching_conditional_range
