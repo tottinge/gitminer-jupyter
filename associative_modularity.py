@@ -5,19 +5,24 @@ from statistics import mean, stdev
 import networkx as nx
 import pandas
 from pandas import DataFrame
-from typing import Generator
 
 
 def associative_groupings(json_file):
     commit_history: DataFrame = pandas.read_json(json_file)
 
-    print("Mega-commits")
-    for line in list_mega_commits(commit_history):
-        print(line)
+    print("Strongest Connections")
+    connection_rankings = relative_strengths(commit_history)
+    strong_pairs = sorted(((value, pair) for pair, value in connection_rankings.items()), reverse=True)
+    for (value,pair) in strong_pairs[:20]:
+        print(f"{value:8.3f} {pair}")
 
-    print("Super-connectors")
-    for item in list_super_connectors(commit_history):
-        print(item)
+    # print("Mega-commits")
+    # for line in list_mega_commits(commit_history):
+    #     print(line)
+    #
+    # print("Super-connectors")
+    # for item in list_super_connectors(commit_history):
+    #     print(item)
 
 
 def count_combinations(p: DataFrame) -> Counter:
@@ -72,10 +77,6 @@ def relative_strengths(p: DataFrame) -> defaultdict:
         for pair in combinations(files, 2):
             d[pair] += strength
     return d
-
-
-
-
 
 
 if __name__ == '__main__':
