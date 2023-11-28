@@ -8,20 +8,6 @@ from pandas import DataFrame
 from typing import Generator
 
 
-def list_mega_commits(history: DataFrame):
-    for (index, (hashcode, date, message, files)) in history[['hash', 'date', 'message', 'files']].iterrows():
-        if len(files) > 100:
-            yield index, len(files), hashcode, date, message
-
-
-def list_super_connectors(history: DataFrame):
-    graph = create_graph_from_dataframe(history)
-    listed = [(neighbors, filename)
-              for filename, neighbors in graph.degree]
-    biggest_first = sorted(listed, reverse=True)
-    return biggest_first[:20]
-
-
 def associative_groupings(json_file):
     commit_history: DataFrame = pandas.read_json(json_file)
 
@@ -46,13 +32,14 @@ def count_combinations(p: DataFrame) -> Counter:
     )
 
 
-def relative_strengths(p: DataFrame) -> defaultdict:
-    d = defaultdict(float)
-    for files in p['files']:
-        strength = (1.0 / len(files)) if files else 0
-        for pair in combinations(files, 2):
-            d[pair] += strength
-    return d
+def create_graph_from_counter(pairings: Counter) -> nx.Graph:
+    graph = nx.Graph()
+    source = (
+        (*pair, count)
+        for pair, count in pairings.items()
+    )
+    graph.add_weighted_edges_from(source)
+    return graph
 
 
 def create_graph_from_dataframe(history: DataFrame):
@@ -64,14 +51,31 @@ def create_graph_from_dataframe(history: DataFrame):
     return nx.Graph(source)
 
 
-def create_graph_from_counter(pairings: Counter) -> nx.Graph:
-    graph = nx.Graph()
-    source = (
-        (*pair, count)
-        for pair, count in pairings.items()
-    )
-    graph.add_weighted_edges_from(source)
-    return graph
+def list_mega_commits(history: DataFrame):
+    for (index, (hashcode, date, message, files)) in history[['hash', 'date', 'message', 'files']].iterrows():
+        if len(files) > 100:
+            yield index, len(files), hashcode, date, message
+
+
+def list_super_connectors(history: DataFrame):
+    graph = create_graph_from_dataframe(history)
+    listed = [(neighbors, filename)
+              for filename, neighbors in graph.degree]
+    biggest_first = sorted(listed, reverse=True)
+    return biggest_first[:20]
+
+
+def relative_strengths(p: DataFrame) -> defaultdict:
+    d = defaultdict(float)
+    for files in p['files']:
+        strength = (1.0 / len(files)) if files else 0
+        for pair in combinations(files, 2):
+            d[pair] += strength
+    return d
+
+
+
+
 
 
 if __name__ == '__main__':
