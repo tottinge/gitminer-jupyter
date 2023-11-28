@@ -11,9 +11,9 @@ def associative_groupings(json_file):
     commit_history: DataFrame = pandas.read_json(json_file)
 
     print("Strongest Connections")
-    connection_rankings = relative_strengths(commit_history)
-    strong_pairs = sorted(((value, pair) for pair, value in connection_rankings.items()), reverse=True)
-    for (value,pair) in strong_pairs[:20]:
+    strong_pairs = strongest_pairs_by_ranking(commit_history)
+    print(f"Strength          Pairing")
+    for (value,pair) in strong_pairs[:50]:
         print(f"{value:8.3f} {pair}")
 
     # print("Mega-commits")
@@ -23,6 +23,12 @@ def associative_groupings(json_file):
     # print("Super-connectors")
     # for item in list_super_connectors(commit_history):
     #     print(item)
+
+
+def strongest_pairs_by_ranking(commit_history):
+    connection_rankings = relative_strengths(commit_history)
+    strong_pairs = sorted(((value, pair) for pair, value in connection_rankings.items()), reverse=True)
+    return strong_pairs
 
 
 def count_combinations(p: DataFrame) -> Counter:
