@@ -49,7 +49,7 @@ def count_combinations(p: DataFrame) -> Counter:
 def relative_strengths(p: DataFrame) -> defaultdict:
     d = defaultdict(float)
     for files in p['files']:
-        strength = files and 1.0 / len(files) or 0
+        strength = (1.0 / len(files)) if files else 0
         for pair in combinations(files, 2):
             d[pair] += strength
     return d
