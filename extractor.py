@@ -17,7 +17,7 @@ def dump_it(source: Repo):
             hash=commit.hexsha,
             author=commit.author.name,
             coauthors=[a.name for a in commit.co_authors],
-            date=str(commit.committed_datetime),
+            date=commit.committed_datetime.isoformat(),
             message=commit.message,
             files=commit.stats.files,
             totals=commit.stats.total
