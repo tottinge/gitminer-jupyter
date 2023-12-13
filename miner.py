@@ -1,5 +1,5 @@
 #!python3
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pandas
 import typer
@@ -54,6 +54,13 @@ def strongest_ranked_pairs(json_file: str):
     strong_pairs = strongest_pairs_by_ranking(pandas.read_json(json_file))
     for value, (left, right) in strong_pairs[:50]:
         print(f"{value:8.3f}: {left} {right}")
+
+
+@app.command("tightest-groupings")
+def tighest_groupings(json_file: str):
+    from associative_modularity import tight_groupings
+    since = (datetime.now().date() - timedelta(weeks=26)).isoformat()
+    tight_groupings(json_file, since)
 
 
 if __name__ == "__main__":
