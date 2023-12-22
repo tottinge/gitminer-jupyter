@@ -5,3 +5,4 @@ __pycache__/
 quizzology
 *.json
 /.fleet/
+/data/
