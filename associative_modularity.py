@@ -1,3 +1,4 @@
+import os
 import statistics
 from collections import Counter, defaultdict
 from collections.abc import Mapping
@@ -23,7 +24,7 @@ def associative_groupings(json_file, since=''):
 
 
 def strongest_pairs_by_ranking(commit_history):
-    connection_rankings = relative_strengths(commit_history)
+    connection_rankings = calculate_relative_strengths(commit_history)
     strong_pairs = sorted(((value, pair)
                            for pair, value in connection_rankings.items())
                           , reverse=True)
@@ -75,7 +76,7 @@ def list_super_connectors(history: DataFrame):
     return biggest_first[:20]
 
 
-def relative_strengths(p: DataFrame) -> defaultdict:
+def calculate_relative_strengths(p: DataFrame) -> defaultdict:
     d = defaultdict(float)
     for files in p['files']:
         strength = (1.0 / len(files)) if files else 0
@@ -108,7 +109,7 @@ def relative_strengths(p: DataFrame) -> defaultdict:
 #     print(f"{rank:8.3f} {pair[0]} <-> {pair[1]}")
 
 # --- A few of these files show up mighty frequently ---
-# --- investigate their connections a bit
+# --- investigate their connections
 # list(g.neighbors('src/models/marketplace/Class.ts'))
 # list(g.neighbors('language/en/dojo.emails.json'))
 
@@ -131,35 +132,41 @@ def create_weighted_graph_from(source: Iterable[tuple[str, str, int | float]]) -
 def groupings(json_source, since_date=None) -> nx.Graph:
     full_set = pandas.read_json(json_source)
     chosen_set = full_set.query(f'"{since_date}" < date') if since_date else full_set
-    weighted_set = relative_strengths(chosen_set)
+    print(f"From {chosen_set.date.min()} through {chosen_set.date.max()}")
+    return significant_groups_from_df(chosen_set, explain=True)
 
+
+def significant_groups_from_df(dataframe, explain=False) -> Iterable[tuple[str, str, float]]:
+    weighted_set = calculate_relative_strengths(dataframe)
     maximum = max(weighted_set.values())
-    print(f"Max = {maximum}")
-    print(f"Min = {min(weighted_set.values())}")
     average = statistics.mean(weighted_set.values())
-    print(f"Mean = {average}")
     median = statistics.median(weighted_set.values())
-    print(f"Median = {median}")
     stdev = statistics.stdev(weighted_set.values())
-    print(f"Stdev = {stdev}")
-
-    limit_of_interest = (maximum - average)/4 + average
-    print(f"Limit of interest = {limit_of_interest}")
-
+    limit_of_interest = (maximum - average) / 5 + average
+    if explain:
+        print(f"Max = {maximum}")
+        print(f"Min = {min(weighted_set.values())}")
+        print(f"Mean = {average}")
+        print(f"Median = {median}")
+        print(f"Stdev = {stdev}")
+        print(f"Limit of interest = {limit_of_interest}")
     source = (
         (first, second, weight)
         for (first, second), weight in weighted_set.items()
         if weight > limit_of_interest
     )
-    wgraph = create_weighted_graph_from(source)
-    return nx.connected_components(wgraph)
+    return nx.connected_components(create_weighted_graph_from(source))
 
 
 def tight_groupings(json_source, since_date=None):
-    full_set = pandas.read_json(json_source)
+    seperator = os.sep
+
+    def dir_reversed(x):
+        return seperator.join(reversed(x.split(seperator)))
+
     for number, grouping in enumerate(groupings(json_source, since_date)):
         print(f"Group {number}:")
-        for member in grouping:
+        for member in sorted(grouping, key=dir_reversed):
             print("    ", member)
 
 

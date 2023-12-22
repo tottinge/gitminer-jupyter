@@ -3,4 +3,5 @@ venv
 .idea
 __pycache__/
 quizzology
-
+*.json
+/.fleet/

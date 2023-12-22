@@ -96,8 +96,6 @@ def print_most_connected(file_to_file_graph: nx.Graph):
 
 
 def build_time_limited_commit_graph(original: nx.DiGraph, period: DateRange):
-    commit: CommitNode
-    filename: str
     return nx.DiGraph(
         (commit, filename)
         for (commit, filename) in original.edges
