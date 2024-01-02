@@ -1,0 +1,7 @@
+#!python
+import sys
+
+from gminer.miner import app
+
+if __name__ == '__main__':
+    sys.exit(app())
