@@ -1,7 +1,7 @@
 from collections import Counter
 from datetime import datetime
 from itertools import combinations
-from typing import Any, NamedTuple
+from typing import Any, NamedTuple, Tuple
 
 import networkx as nx
 from git import Repo, Commit
@@ -96,11 +96,18 @@ def print_most_connected(file_to_file_graph: nx.Graph):
 
 
 def build_time_limited_commit_graph(original: nx.DiGraph, period: DateRange):
+<<<<<<< HEAD:gitminer/__init__.py
     return nx.DiGraph(
         (commit, filename)
         for (commit, filename) in original.edges
         if period.includes(commit.timestamp)
     )
+=======
+    edges = ((commit, filename)
+             for (commit, filename) in original.edges
+             if period.includes(commit.timestamp))
+    return nx.DiGraph(edges)
+>>>>>>> 913fe36 (refactor: cleaning up the expression of a list comp):gitminer.py
 
 
 def get_repo_commits_graph(repository_path: str):
