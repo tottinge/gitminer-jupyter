@@ -6,7 +6,8 @@ dependencies = [
     "networkx",
     "pandas",
     "typer",
-    "GitPython"
+    "GitPython",
+    "rich"
 ]
 requires-python = ">= 3.9"
 authors = [

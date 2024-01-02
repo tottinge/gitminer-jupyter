@@ -8,3 +8,4 @@ typer
 pandas
 typing_extensions
 build
+rich
