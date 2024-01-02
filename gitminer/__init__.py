@@ -6,7 +6,7 @@ from typing import Any, NamedTuple
 import networkx as nx
 from git import Repo, Commit
 
-from daterange import DateRange
+from daterange.daterange import DateRange
 
 little_labels = dict(with_labels=True, font_size=7)
 medium_labels = dict(with_labels=True, font_size=7)

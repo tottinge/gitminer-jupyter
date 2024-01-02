@@ -6,7 +6,7 @@ import typer
 from git import Repo
 from typing_extensions import Annotated
 
-from associative_modularity import strongest_pairs_by_ranking
+from .associative_modularity import strongest_pairs_by_ranking
 
 app = typer.Typer()
 
@@ -19,7 +19,7 @@ def cli_most_committed(
     """
     List the files that have been committed the most often
     """
-    from most_commited import count_files_in_commits
+    from .most_commited import count_files_in_commits
     count_files_in_commits(json_file, max_to_list)
 
 
@@ -28,7 +28,7 @@ def cli_extract_to_json(repo_path: str):
     """
     Extract the contents of early git repo to early json file
     """
-    from extractor import dump_it
+    from .extractor import dump_it
     source: Repo = Repo(repo_path)
     dump_it(source)
 
@@ -42,7 +42,7 @@ def daily_commits(
     """
     List the total number of commits per day
     """
-    from per_date_stats import report_commits_per_day
+    from .per_date_stats import report_commits_per_day
     report_commits_per_day(json_file, after=after, before=before)
 
 
@@ -65,7 +65,7 @@ def tightest_groupings(
     List the tightest groupings of files based on maintenance
     since a given date (or 6 months ago if not specified)
     """
-    from associative_modularity import tight_groupings
+    from .associative_modularity import tight_groupings
     since = after.date() if after else (datetime.now().date() - timedelta(weeks=52))
     tight_groupings(json_file, since.isoformat())
 
