@@ -1,13 +1,18 @@
 # Git Miner
 
-Exploration of git history via networkx
+Exploration of maintenance patterns in git.
 
-Initially, the idea is to find "affinity" between files by building a graph where every commit that includes file A and B creates a connection. Which files tend to be committed together? Which never are? What is the structure we should expect?
 
-Future directions: 
-* Module structure recommendations
-* File recommender ("6 of 12 programmers also edited BLAH.java")
-* ???
+# How it works
+
+This git miner has two phases. The first is to extract the history from a
+git repository (see `git extract-to-json`). This should be directed to a file,
+preferably with a .json file extension.
+
+Once you have that extract, you can run the various analytic tools on 
+the json file. You don't need to have the source code or the actual
+git repository handy.
+
 
 
 # Setup
@@ -19,25 +24,12 @@ In shell:
 	python -m venv venv
 	source venv/bin/activate
 
-## Install the requirements
+Install miner:
 
-in shell:
+    pip install path/to/whl/file/blah.whl
 
-	pip install -r requirements.txt
+To run it:
+
+    miner --help
 
 
-
-## Create a Jupyter Kernel
-in shell:
-
-	python -m ipykernel install --user --name=gitminer
-	
-## Launch jupyter
-
-in shell:
-
-    ./run
-  
-or type:
-
-    jupyter-lab

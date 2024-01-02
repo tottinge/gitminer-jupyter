@@ -1,0 +1,29 @@
+[project]
+name = "gitminer"
+description = "Get maintenance pattern information from your git repo"
+version = "0.0.1"
+dependencies = [
+    "networkx",
+    "pandas",
+    "typer",
+    "GitPython"
+]
+requires-python = ">= 3.9"
+authors = [
+    {name="Tim Ottinger", email = "tottinge@industriallogic.com"},
+    {name="Perry Reid", email="perry@industriallogic.com"}
+]
+readme = "README.md"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development",
+]
+
+
+[project.scripts]
+miner = "gminer.miner:app"
+
+[tool.setuptools]
+packages = ["gminer"]
