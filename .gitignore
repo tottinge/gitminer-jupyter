@@ -6,3 +6,6 @@ quizzology
 *.json
 /.fleet/
 data
+.DS_Store
+dist
+gitminer.egg-info
