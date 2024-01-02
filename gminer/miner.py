@@ -62,8 +62,10 @@ def tightest_groupings(
         after: Annotated[datetime, typer.Option("--since")] = None
 ):
     """
-    List the tightest groupings of files based on maintenance
-    since a given date (or 6 months ago if not specified)
+    List the tightest groupings of source files.
+
+    Groupings are defined by the frequency in which files were committed together.
+    By default, the last 12 months are examined.
     """
     from .associative_modularity import tight_groupings
     since = after.date() if after else (datetime.now().date() - timedelta(weeks=52))
