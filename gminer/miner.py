@@ -52,8 +52,8 @@ def strongest_ranked_pairs(json_file: str):
     Strongest-related pairs based on commits
     """
     strong_pairs = strongest_pairs_by_ranking(pandas.read_json(json_file))
-    for value, (left, right) in strong_pairs[:50]:
-        print(f"{value:8.3f}: {left} {right}")
+    for value, (left, right), count in strong_pairs[:50]:
+        print(f"{value:8.3f}: {count:5d}x: {left}\n                  {right}\n")
 
 
 @app.command("tightest-groupings")

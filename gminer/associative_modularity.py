@@ -23,9 +23,10 @@ def associative_groupings(json_file, since=''):
         print(f"{value:8.3f} {pair[0]} {pair[1]}")
 
 
-def strongest_pairs_by_ranking(commit_history):
+def strongest_pairs_by_ranking(commit_history: DataFrame):
     connection_rankings = calculate_relative_strengths(commit_history)
-    strong_pairs = sorted(((value, pair)
+    pairing_count: Counter = count_combinations(commit_history)
+    strong_pairs = sorted(((value, pair, pairing_count[pair])
                            for pair, value in connection_rankings.items())
                           , reverse=True)
     return strong_pairs
