@@ -33,14 +33,10 @@ def strongest_pairs_by_ranking(commit_history: DataFrame):
 
 
 def count_combinations(p: DataFrame) -> Counter:
-    commit_sizes = [len(files) for files in p['files']]
-    arbitrary_limit = mean(commit_sizes) + stdev(commit_sizes)
-    print(f"Arbitrary limit is {arbitrary_limit}")
     return Counter(
         pair
         for files in p['files']
         for pair in combinations(files, 2)
-        if len(files) < arbitrary_limit
     )
 
 

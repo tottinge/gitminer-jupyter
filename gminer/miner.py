@@ -50,10 +50,14 @@ def daily_commits(
 def strongest_ranked_pairs(json_file: str):
     """
     Strongest-related pairs based on commits
+
+    Lists the strength of the relationship, the count of co-commits, and the file names.
     """
+    print("Strongest-pairs")
     strong_pairs = strongest_pairs_by_ranking(pandas.read_json(json_file))
+    print("Strength Count  Pair")
     for value, (left, right), count in strong_pairs[:50]:
-        print(f"{value:8.3f}: {count:5d}x: {left}\n                  {right}\n")
+        print(f"{value:8.3f}:{count:5d} {left}\n               {right}\n")
 
 
 @app.command("tightest-groupings")
