@@ -12,17 +12,6 @@ from networkx import Graph
 from pandas import DataFrame
 
 
-def associative_groupings(json_file, since=''):
-    commit_history: DataFrame = (pandas.read_json(json_file)
-                                 .query(f'"{since}" < date'))
-
-    print("Strongest Connections")
-    strong_pairs = strongest_pairs_by_ranking(commit_history)
-    print("Strength          Pairing")
-    for (value, pair) in strong_pairs[:50]:
-        print(f"{value:8.3f} {pair[0]} {pair[1]}")
-
-
 def strongest_pairs_by_ranking(commit_history: DataFrame):
     connection_rankings = calculate_relative_strengths(commit_history)
     pairing_count: Counter = count_combinations(commit_history)
