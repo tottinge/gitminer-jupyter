@@ -1,7 +1,9 @@
 #!python3
+import logging
 from datetime import datetime, timedelta
 
 import pandas
+import pandas as pd
 import typer
 from git import Repo
 from typing_extensions import Annotated
@@ -9,6 +11,43 @@ from typing_extensions import Annotated
 from .associative_modularity import strongest_pairs_by_ranking
 
 app = typer.Typer()
+logger = logging.getLogger(__name__)
+
+
+def process_tags(repo: Repo) -> dict[str, str]:
+    """Maps tag names to commit hashes"""
+    from datetime import datetime
+    result = dict()
+    for tag_ref in repo.tags:
+        if not tag_ref:
+            logger.warning("No tag found")
+            # Sometimes they're ill-formed somehow.
+            continue
+        if not tag_ref.tag:
+            logger.warning("Lightweight tag %s", tag_ref)
+            # I know, it makes no sense, but sometimes they don't.
+            continue
+        if not tag_ref.commit:
+            logger.warning("There is no commit for tag %s", tag_ref)
+            # Nearly as weird as the above two cases
+            continue
+        tagged_date = datetime.fromtimestamp(tag_ref.commit.committed_date)
+        print(f"{tag_ref}, date {tagged_date}, summary {tag_ref.commit.summary}")
+        result[tag_ref.commit.hexsha] = tag_ref.name
+    return result
+
+
+def intervals(repo: Repo, pattern: str):
+    source = ((tag_ref.name, tag_ref.commit.authored_datetime) for tag_ref in repo.tags)
+    raw_df = pd.DataFrame(data=source, columns=["name", "timestamp"])
+    # Order by date rather than alphabetically by label
+    raw_df = raw_df.sort_values(by=["timestamp"])
+    # Limit to labels matching releases
+    filter_bools = raw_df["name"].str.match(pattern)
+    filtered_df = raw_df[filter_bools]
+    # Have pandas calculate and insert the intervals
+    filtered_df['interval'] = filtered_df['timestamp'].diff()
+    return filtered_df
 
 
 @app.command("most-committed")
@@ -78,5 +117,3 @@ def tightest_groupings(
 
 if __name__ == "__main__":
     app()
-
-# Counter(d.date for d in pd.to_datetime(df['Date'])

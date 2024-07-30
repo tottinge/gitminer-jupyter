@@ -1,5 +1,4 @@
 import unittest
-from gminer import miner
 from typer.testing import CliRunner
 
 from gminer.miner import app

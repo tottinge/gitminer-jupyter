@@ -13,13 +13,19 @@ def dump_it(source: Repo):
     for line_number, commit in enumerate(source.iter_commits()):  # Just get it all
         if line_number > 0:
             print(",")
+        original_files = commit.stats.files
+        normalized_files = [
+            {'filename': fname, **original_files[fname]}
+            for fname in original_files
+        ]
+
         d = dict(
             hash=commit.hexsha,
             author=commit.author.name,
             coauthors=[a.name for a in commit.co_authors],
             date=commit.committed_datetime.isoformat(),
             message=commit.message,
-            files=commit.stats.files,
+            files=normalized_files,
             totals=commit.stats.total
         )
         print(json.dumps(d), end='')
