@@ -14,7 +14,16 @@ app = typer.Typer()
 logger = logging.getLogger(__name__)
 
 
-def intervals(repo: Repo, pattern: str):
+@app.command("release-freq")
+def release_frequency(path_to_repo: str, tag_regex:str) -> None:
+    import git
+    repo = git.Repo(path_to_repo)
+    df = release_tag_intervals(repo, tag_regex)
+    timings = df['interval']
+    print(f"Maxs {timings.max()}\nMin {timings.min()}\nMean: {timings.mean()}")
+
+
+def release_tag_intervals(repo: Repo, pattern: str):
     source = ((tag_ref.name, tag_ref.commit.authored_datetime) for tag_ref in repo.tags)
     raw_df = pd.DataFrame(data=source, columns=["name", "timestamp"])
     # Order by date rather than alphabetically by label
