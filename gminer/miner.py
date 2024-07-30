@@ -22,6 +22,14 @@ def release_frequency(path_to_repo: str, tag_regex: str) -> None:
     timings = df['interval']
     print(f"Max {timings.max()}\nMin {timings.min()}\nMean: {timings.mean()}")
 
+    # draw a picture
+    import plotly.express as px
+    from datetime import timedelta
+    start = datetime.now().astimezone() - timedelta(days=90)
+    figure = px.histogram(df[df['timestamp'] > start], x="timestamp", y="interval")
+    figure.update_layout(bargap=0.2)
+    figure.write_image("sample.png", format="png")
+
 
 def release_tag_intervals(repo: Repo, pattern: str):
     source = ((tag_ref.name, tag_ref.commit.authored_datetime) for tag_ref in repo.tags)
