@@ -15,12 +15,12 @@ logger = logging.getLogger(__name__)
 
 
 @app.command("release-freq")
-def release_frequency(path_to_repo: str, tag_regex:str) -> None:
+def release_frequency(path_to_repo: str, tag_regex: str) -> None:
     import git
     repo = git.Repo(path_to_repo)
     df = release_tag_intervals(repo, tag_regex)
     timings = df['interval']
-    print(f"Maxs {timings.max()}\nMin {timings.min()}\nMean: {timings.mean()}")
+    print(f"Max {timings.max()}\nMin {timings.min()}\nMean: {timings.mean()}")
 
 
 def release_tag_intervals(repo: Repo, pattern: str):
