@@ -14,29 +14,6 @@ app = typer.Typer()
 logger = logging.getLogger(__name__)
 
 
-def process_tags(repo: Repo) -> dict[str, str]:
-    """Maps tag names to commit hashes"""
-    from datetime import datetime
-    result = dict()
-    for tag_ref in repo.tags:
-        if not tag_ref:
-            logger.warning("No tag found")
-            # Sometimes they're ill-formed somehow.
-            continue
-        if not tag_ref.tag:
-            logger.warning("Lightweight tag %s", tag_ref)
-            # I know, it makes no sense, but sometimes they don't.
-            continue
-        if not tag_ref.commit:
-            logger.warning("There is no commit for tag %s", tag_ref)
-            # Nearly as weird as the above two cases
-            continue
-        tagged_date = datetime.fromtimestamp(tag_ref.commit.committed_date)
-        print(f"{tag_ref}, date {tagged_date}, summary {tag_ref.commit.summary}")
-        result[tag_ref.commit.hexsha] = tag_ref.name
-    return result
-
-
 def intervals(repo: Repo, pattern: str):
     source = ((tag_ref.name, tag_ref.commit.authored_datetime) for tag_ref in repo.tags)
     raw_df = pd.DataFrame(data=source, columns=["name", "timestamp"])
