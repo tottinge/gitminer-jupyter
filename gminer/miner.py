@@ -26,7 +26,8 @@ def release_frequency(path_to_repo: str, tag_regex: str) -> None:
     import plotly.express as px
     from datetime import timedelta
     start = datetime.now().astimezone() - timedelta(days=90)
-    figure = px.histogram(df[df['timestamp'] > start], x="timestamp", y="interval")
+    recent_data = df[df['timestamp'] > start]
+    figure = px.histogram(recent_data, x="timestamp", y="interval")
     figure.update_layout(bargap=0.2)
     figure.write_image("sample.png", format="png")
 
