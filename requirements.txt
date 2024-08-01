@@ -13,3 +13,4 @@ typing~=3.7.4.3
 pytz~=2023.3.post1
 textblob~=0.18.0.post0
 kaleido
+dash
