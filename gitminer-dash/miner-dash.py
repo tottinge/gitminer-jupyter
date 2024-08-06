@@ -21,9 +21,6 @@ class IDs:
     GRAPH_RELEASE_FREQUENCY: str = "repo-release-frequency"
 
 
-last_clicks = 0
-
-
 def render_selection():
     @app.callback(
         Output(IDs.LOADED_INDICATOR, "children"),
@@ -31,8 +28,8 @@ def render_selection():
         State(IDs.REPO_TEXT_INPUT, "value"),
         prevent_initial_call=True
     )
-    def start_loading(clicks, path):
-        logger.warning(f"Clicks: {clicks}, path: {path}")
+    def start_loading(n_clicks, path, global_state):
+        logger.warning(f"Clicks: {n_clicks}, path: {path}")
         if os.path.isdir(path):
             try:
                 global repo
