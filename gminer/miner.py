@@ -33,15 +33,17 @@ def release_frequency(path_to_repo: str, tag_regex: str) -> None:
 
 
 def release_tag_intervals(repo: Repo, pattern: str):
-    source = ((tag_ref.name, tag_ref.commit.authored_datetime) for tag_ref in repo.tags)
+    source = ((tag_ref.name, tag_ref.commit.authored_datetime.replace(minute=0, second=0, microsecond=0)) for tag_ref in
+              repo.tags)
     raw_df = pd.DataFrame(data=source, columns=["name", "timestamp"])
     # Order by date rather than alphabetically by label
     raw_df = raw_df.sort_values(by=["timestamp"])
     # Limit to labels matching releases
     filter_bools = raw_df["name"].str.match(pattern)
-    filtered_df = raw_df[filter_bools]
+    filtered_df = raw_df[filter_bools].copy()
     # Have pandas calculate and insert the intervals
     filtered_df['interval'] = filtered_df['timestamp'].diff()
+    filtered_df['days_since'] = filtered_df['interval'].dt.days
     return filtered_df
 
 
