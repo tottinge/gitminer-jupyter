@@ -27,6 +27,23 @@ class IDs:
     GRAPH_RELEASE_FREQUENCY: str = "repo-release-frequency"
 
 
+def acquire_mandatory_repo(repo_path: str) -> git.Repo:
+    if not repo_path:
+        raise PreventUpdate()
+    try:
+        git_repo = git.Repo(repo_path)
+    except git.exc.InvalidGitRepositoryError:
+        raise PreventUpdate()
+    return git_repo
+
+
+def acquire_mandatory_global_state(data_string: str) -> dict:
+    data = json.loads(data_string) if data_string else {}
+    if not data:
+        raise PreventUpdate()
+    return data
+
+
 def render_selection():
     @app.callback(
         Output(IDs.GLOBAL_STATE_JSON, "data"),
@@ -52,30 +69,23 @@ def render_selection():
         Input(IDs.GLOBAL_STATE_JSON, "data")
     )
     def display_loaded_indicator(data_string):
-        data = json.loads(data_string) if data_string else {}
-        logging.warning(f"Loaded indicator call for: {data}")
+        data = acquire_mandatory_global_state(data_string)
         if not data:
             return ["No repository loaded"]
         error_msg = data.get("error_msg")
         if error_msg:
             return [f"No Repo Loaded. {error_msg}"]
-        return html.Div(children=[f"Loading {data.get('repo_path')}"])
+        return html.Div(children=[f"Using {data.get('repo_path')}"])
 
     @app.callback(
-        Output(IDs.GRAPH_RELEASE_FREQUENCY, "figure"),
+        Output(IDs.GRAPH_RELEASE_FREQUENCY, "children"),
         Input(IDs.GLOBAL_STATE_JSON, "data")
     )
     def display_graph_release_frequency(data_string):
         graph_points = 24
-        data = json.loads(data_string) if data_string else {}
-        if not data:
-            raise PreventUpdate()
+        data = acquire_mandatory_global_state(data_string)
+        git_repo = acquire_mandatory_repo(data.get('repo_path'))
 
-        repo_path = data.get('repo_path')
-        if not repo_path:
-            raise PreventUpdate()
-
-        git_repo = git.Repo(repo_path)
         full_tag_df = release_tag_intervals(git_repo, 'production')
 
         # Drop all but the last 35 - you need at least one more than you graph
@@ -109,12 +119,16 @@ def render_selection():
                         )
 
         # figure.update_traces(width=10)
-        return figure
+        return dcc.Graph(id="generated-release-frequency-graph", figure=figure)
 
     return html.Div(children=[
         html.Div(children=[
             html.Label("Regex for release tags", htmlFor=IDs.REGEX_TEXT_INPUT),
-            dcc.Input(id=IDs.REGEX_TEXT_INPUT, type="search", size="128"),
+            dcc.Input(id=IDs.REGEX_TEXT_INPUT,
+                      type="search",
+                      size="128",
+                      placeholder="regex for recognizing release tags",
+                      value=r"\d+\." * 3),
         ]),
         html.Div(children=[
             html.Label("Repository to evaluate", htmlFor=IDs.REPO_TEXT_INPUT),
@@ -127,7 +141,7 @@ def render_selection():
         ]),
         html.Button("Load", type="Submit", id=IDs.REPO_SELECT_BTN),
         html.P(id=IDs.LOADED_INDICATOR, children=["Not Loaded"]),
-        dcc.Graph(id=IDs.GRAPH_RELEASE_FREQUENCY),
+        html.Div(id=IDs.GRAPH_RELEASE_FREQUENCY),
     ])
 
 
