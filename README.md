@@ -12,6 +12,8 @@ Once you have that extract, you can run the various analytic tools on
 the json file. You don't need to have the source code or the actual
 git repository handy.
 
+There is a dash app for visualization  
+
 # Setup
 
 ## Create a venv
