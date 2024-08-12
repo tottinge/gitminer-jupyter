@@ -1,5 +1,7 @@
 #!python3
 import logging
+import re
+from collections import Counter
 from datetime import datetime, timedelta
 
 import pandas
@@ -45,6 +47,23 @@ def release_tag_intervals(repo: Repo, pattern: str):
     filtered_df['interval'] = filtered_df['timestamp'].diff()
     filtered_df['days_since'] = filtered_df['interval'].dt.days
     return filtered_df
+
+
+def releases_by_week_numbers(repo: Repo, year, pattern: str):
+    release_pattern = re.compile(pattern)
+    year_of = lambda x: x.commit.authored_datetime.isocalendar().year
+    week_of = lambda x: x.commit.authored_datetime.isocalendar().week
+    date_of = lambda x: x.commit.authored_datetime
+
+    source = ((tag_ref.name, year_of(tag_ref), week_of(tag_ref), date_of(tag_ref))
+              for tag_ref in repo.tags
+              if tag_ref.commit.authored_datetime.year >= year and release_pattern.search(tag_ref.name))
+    counts = Counter((year, week) for (_, year, week, _) in source)
+    out_data = (
+        (datetime.fromisocalendar(key[0], key[1], 1), releases)
+        for (key, releases) in counts.items()
+    )
+    return pd.DataFrame(data=out_data, columns=["week", "releases"])
 
 
 @app.command("most-committed")

@@ -77,10 +77,12 @@ def calculate_relative_strengths(commit_df: DataFrame) -> defaultdict:
 
     @return: dict of (file,file):strength
     """
+    assert 'files' in commit_df.columns
     result = defaultdict(float)
     for files in commit_df['files']:
         strength = (1.0 / len(files)) if files else 0
-        for pair in combinations(files, 2):
+        filenames = [x['filename'] for x in files]
+        for pair in combinations(filenames, 2):
             result[pair] += strength
     return result
 

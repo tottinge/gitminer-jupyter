@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from datetime import datetime
 from typing import Optional
 
 import git
@@ -8,7 +9,7 @@ import plotly.express as px
 from dash import Dash, html, dcc, Output, Input, State
 from dash.exceptions import PreventUpdate
 
-from gminer.miner import release_tag_intervals
+from gminer.miner import release_tag_intervals, releases_by_week_numbers
 
 repo: Optional[git.Repo] = None
 logger = logging.getLogger(__name__)
@@ -18,13 +19,14 @@ app = Dash()
 
 
 class IDs:
+    GRAPH_WEEKLY = "repo-weekly-release-graph"
     REGEX_TEXT_INPUT = "release_tag_regex_input"
     GLOBAL_STATE_JSON = "global-state-json"
     REPO_SELECT_BTN: str = "repo-select-btn"
     REPO_UPLOAD_CTRL = "repo-select-ctrl"
     REPO_TEXT_INPUT: str = "repo-text-input"
     LOADED_INDICATOR: str = "repo-loaded-indicator"
-    GRAPH_RELEASE_FREQUENCY: str = "repo-release-frequency"
+    GRAPH_RELEASE_FREQUENCY: str = "repo-release-frequency-graph"
 
 
 def acquire_mandatory_repo(repo_path: str) -> git.Repo:
@@ -121,6 +123,31 @@ def render_selection():
         # figure.update_traces(width=10)
         return dcc.Graph(id="generated-release-frequency-graph", figure=figure)
 
+    @app.callback(
+        Output(IDs.GRAPH_WEEKLY, "children"),
+        Input(IDs.GLOBAL_STATE_JSON, "data"),
+        State(IDs.REGEX_TEXT_INPUT, "value"),
+        prevent_initial_call=True
+    )
+    def update_weekly_graph(data_string: str, regex_pattern: str):
+        data = acquire_mandatory_global_state(data_string)
+        repo_path = data.get("repo_path")
+        repo = acquire_mandatory_repo(repo_path)
+        repo_name = os.path.basename(repo_path)
+        df = releases_by_week_numbers(repo, datetime.now().year - 1, regex_pattern)
+        if df.empty:
+            return [html.P("no weekly release data to graph")]
+        mean = df["releases"].mean()
+        barchart = px.bar(
+            df,
+            x="week",
+            y="releases",
+            color="releases",
+            title=f"Release Frequency {repo_name} (mean {mean:.3f})",
+            color_continuous_scale=["darkblue", "lightgreen"]
+        )
+        return [dcc.Graph(figure=barchart, id="weekly_graph")]
+
     return html.Div(children=[
         html.Div(children=[
             html.Label("Regex for release tags", htmlFor=IDs.REGEX_TEXT_INPUT),
@@ -128,7 +155,7 @@ def render_selection():
                       type="search",
                       size="128",
                       placeholder="regex for recognizing release tags",
-                      value=r"\d+\." * 3),
+                      value=r"\d+[.]" * 3),
         ]),
         html.Div(children=[
             html.Label("Repository to evaluate", htmlFor=IDs.REPO_TEXT_INPUT),
@@ -141,6 +168,7 @@ def render_selection():
         ]),
         html.Button("Load", type="Submit", id=IDs.REPO_SELECT_BTN),
         html.P(id=IDs.LOADED_INDICATOR, children=["Not Loaded"]),
+        html.Div(id=IDs.GRAPH_WEEKLY, children=["Not Loaded"]),
         html.Div(id=IDs.GRAPH_RELEASE_FREQUENCY),
     ])
 
