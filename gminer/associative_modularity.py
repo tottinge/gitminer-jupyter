@@ -24,7 +24,7 @@ def count_combinations(p: DataFrame) -> Counter:
     return Counter(
         pair
         for files in p['files']
-        for pair in combinations(files, 2)
+        for pair in combinations([file['filename'] for file in files], 2)
     )
 
 
