@@ -9,3 +9,4 @@ data
 .DS_Store
 dist
 gitminer.egg-info
+*/.ipynb_checkpoints
