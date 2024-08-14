@@ -1,14 +1,9 @@
 from collections import Counter
-from typing import cast
 
-import pandas
 import typer
 
-from gminer.types import GitHistoryDataframe, FilesEntry
-
-
-def read_git_history_from_file(json_file: str) -> GitHistoryDataframe:
-    return cast(GitHistoryDataframe, pandas.read_json(json_file))
+from gminer.types import FilesEntry
+from gminer.utility import read_git_history_from_file
 
 
 def count_files_in_commits(json_file: str, goal: int):
