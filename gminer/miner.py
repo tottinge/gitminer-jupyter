@@ -4,12 +4,12 @@ import re
 from collections import Counter
 from datetime import datetime, timedelta
 
-import pandas
 import pandas as pd
 import typer
 from git import Repo
 from typing_extensions import Annotated
 
+from gminer.utility import read_git_history_from_file
 from .associative_modularity import strongest_pairs_by_ranking
 
 app = typer.Typer()
@@ -111,7 +111,7 @@ def strongest_ranked_pairs(json_file: str):
     Lists the strength of the relationship, the count of co-commits, and the file names.
     """
     print("Strongest-pairs")
-    strong_pairs = strongest_pairs_by_ranking(pandas.read_json(json_file))
+    strong_pairs = strongest_pairs_by_ranking(read_git_history_from_file(json_file))
     print("Strength Count  Pair")
     for value, (left, right), count in strong_pairs[:50]:
         print(f"{value:8.3f}:{count:5d} {left}\n               {right}\n")

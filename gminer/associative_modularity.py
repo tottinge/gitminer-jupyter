@@ -10,6 +10,8 @@ import pandas
 from networkx import Graph
 from pandas import DataFrame
 
+from gminer.utility import read_git_history_from_file
+
 
 def strongest_pairs_by_ranking(commit_history: DataFrame):
     connection_rankings = calculate_relative_strengths(commit_history)
@@ -103,7 +105,7 @@ def create_weighted_graph_from(source: Iterable[tuple[str, str, int | float]]) -
 
 
 def groupings(json_source, since_date=None) -> Iterable[tuple[str, str, float]]:
-    full_set = pandas.read_json(json_source)
+    full_set = read_git_history_from_file(json_source)
     chosen_set = full_set.query(f'"{since_date}" < date') if since_date else full_set
     print(f"From {chosen_set.date.min()} through {chosen_set.date.max()}")
     return significant_groups_from_df(chosen_set, explain=True)
@@ -144,7 +146,7 @@ def tight_groupings(json_source: str, since_date: str = None):
 
 def main():
     # associative_groupings('website.json')
-    all_of_it = pandas.read_json('miner.json')
+    all_of_it = read_git_history_from_file('miner.json')
     this_year = all_of_it.query('"2023-01-01" < date')
     print("Super-connectors")
     for (connections, filename) in list_super_connectors(this_year):

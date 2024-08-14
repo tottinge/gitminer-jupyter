@@ -6,6 +6,8 @@ from typing import Optional
 import pandas
 from pytz import utc
 
+from gminer.utility import read_git_history_from_file
+
 
 def report_commits_per_day(json_file, *, after: datetime = None, before: datetime = None):
     """
@@ -13,7 +15,7 @@ def report_commits_per_day(json_file, *, after: datetime = None, before: datetim
     not knowing how, I fell back on Counter() to count the
     number of commits per day.
     """
-    p = pandas.read_json(json_file)
+    p = read_git_history_from_file(json_file)
     conditional = conditional_range(after, before)
 
     counts = Counter(d.date() for d in pandas.to_datetime(p['date'], utc=True) if conditional(d))

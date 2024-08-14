@@ -12,6 +12,9 @@ class GitHistoryDataframe(Protocol):
     files: pd.Series  # of dictionaries
     totals: pd.Series  # of dictionaries
 
+    def query(self, query: str) -> pd.DataFrame:
+        ...
+
 
 ChangeSummary = Dict[str, int]
 FilesEntry = Dict[str, ChangeSummary]
