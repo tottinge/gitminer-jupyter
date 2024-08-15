@@ -7,19 +7,14 @@ import typer
 from git import Repo, Commit
 
 
-def dump_it(source: Repo):
-    commit: Commit
-    print("[")
-    for line_number, commit in enumerate(source.iter_commits()):  # Just get it all
-        if line_number > 0:
-            print(",")
+def emit_commit_records_as_json(repository: Repo):
+    for line_number, commit in enumerate(repository.iter_commits()):
         original_files = commit.stats.files
         normalized_files = [
-            {'filename': fname, **original_files[fname]}
-            for fname in original_files
+            {'filename': filename, **original_files[filename]}
+            for filename in original_files
         ]
-
-        d = dict(
+        new_record = dict(
             hash=commit.hexsha,
             author=commit.author.name,
             coauthors=[a.name for a in commit.co_authors],
@@ -28,7 +23,16 @@ def dump_it(source: Repo):
             files=normalized_files,
             totals=commit.stats.total
         )
-        print(json.dumps(d), end='')
+        yield new_record
+
+
+def dump_it(repository: Repo):
+    commit: Commit
+    print("[")
+    for line_number, record in enumerate(emit_commit_records_as_json(repository)):
+        if line_number > 0:
+            print(",")
+        print(json.dumps(record), end='')
     print("\n]")
 
 
