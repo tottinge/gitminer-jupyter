@@ -62,10 +62,10 @@ def matching_conditional_range(early: Optional[datetime], late: Optional[datetim
             return lambda x: start_date.astimezone() < x < end_date.astimezone()
 
 
-conditional_range = matching_conditional_range
-
-
 def elegant_choice(low: Optional[datetime], high: Optional[datetime]):
     before = low or datetime.min.replace(tzinfo=utc)
     until = high or datetime.max.replace(tzinfo=utc)
     return lambda x: before < x < until
+
+
+conditional_range = matching_conditional_range
