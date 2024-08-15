@@ -1,9 +1,11 @@
-from typing import Protocol, Dict
+from enum import StrEnum
+from typing import Protocol, Dict, Iterable
 
 import pandas as pd
 
 
 class GitHistoryDataframe(Protocol):
+    columns: Iterable[str]
     hash: pd.Series  # of string
     author: pd.Series  # of string
     coauthors: pd.Series  # of lists of strings
@@ -18,3 +20,7 @@ class GitHistoryDataframe(Protocol):
 
 ChangeSummary = Dict[str, int]
 FilesEntry = Dict[str, ChangeSummary]
+
+
+class FEKey(StrEnum):
+    filename = "filename"

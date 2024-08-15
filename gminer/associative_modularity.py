@@ -10,10 +10,11 @@ import pandas
 from networkx import Graph
 from pandas import DataFrame
 
+from gminer.types import GitHistoryDataframe, FEKey
 from gminer.utility import read_git_history_from_file
 
 
-def strongest_pairs_by_ranking(commit_history: DataFrame):
+def strongest_pairs_by_ranking(commit_history: GitHistoryDataframe):
     connection_rankings = calculate_relative_strengths(commit_history)
     pairing_count: Counter = count_combinations(commit_history)
     ranked_list_of_pairs = ((value, pair, pairing_count[pair])
@@ -22,11 +23,11 @@ def strongest_pairs_by_ranking(commit_history: DataFrame):
     return strong_pairs
 
 
-def count_combinations(p: DataFrame) -> Counter:
+def count_combinations(p: GitHistoryDataframe) -> Counter:
     return Counter(
         pair
-        for files in p['files']
-        for pair in combinations([file['filename'] for file in files], 2)
+        for files in p.files
+        for pair in combinations([file[FEKey.filename] for file in files], 2)
     )
 
 
@@ -40,10 +41,10 @@ def create_graph_from_pair_mapping(pairings: Mapping[tuple[str, str], Any]) -> n
     return graph
 
 
-def create_graph_from_dataframe(history: DataFrame):
+def create_graph_from_dataframe(history: GitHistoryDataframe):
     source = []
-    for files in history["files"]:
-        commit_files = [x['filename'] for x in files]
+    for files in history.files:
+        commit_files = [x[FEKey.filename] for x in files]
         if len(commit_files) < 1:
             continue
         for pair in combinations(commit_files, 2):
@@ -65,7 +66,7 @@ def list_super_connectors(history: DataFrame):
     return biggest_first[:20]
 
 
-def calculate_relative_strengths(commit_df: DataFrame) -> defaultdict:
+def calculate_relative_strengths(commit_df: GitHistoryDataframe) -> defaultdict:
     """
     collect filenames from commit history, and calculate
     cumulative relative strength of connections between them.
@@ -81,9 +82,9 @@ def calculate_relative_strengths(commit_df: DataFrame) -> defaultdict:
     """
     assert 'files' in commit_df.columns
     result = defaultdict(float)
-    for files in commit_df['files']:
+    for files in commit_df.files:
         strength = (1.0 / len(files)) if files else 0
-        filenames = [x['filename'] for x in files]
+        filenames = [x[FEKey.filename] for x in files]
         for pair in combinations(filenames, 2):
             result[pair] += strength
     return result
@@ -111,7 +112,7 @@ def groupings(json_source, since_date=None) -> Iterable[tuple[str, str, float]]:
     return significant_groups_from_df(chosen_set, explain=True)
 
 
-def significant_groups_from_df(dataframe, explain=False) -> Iterable[tuple[str, str, float]]:
+def significant_groups_from_df(dataframe: GitHistoryDataframe, explain=False) -> Iterable[tuple[str, str, float]]:
     weighted_set = calculate_relative_strengths(dataframe)
     maximum = max(weighted_set.values())
     average = statistics.mean(weighted_set.values())
