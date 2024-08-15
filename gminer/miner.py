@@ -3,6 +3,7 @@ import logging
 import re
 from collections import Counter
 from datetime import datetime, timedelta
+from statistics import mean
 
 import pandas as pd
 import typer
@@ -99,8 +100,17 @@ def daily_commits(
     """
     List the total number of commits per day
     """
-    from .per_date_stats import report_commits_per_day
-    report_commits_per_day(json_file, after=after, before=before)
+    from .per_date_stats import count_commits_per_day
+    p = read_git_history_from_file(json_file)
+    counts = count_commits_per_day(p, after=after, before=before)
+    if not counts:
+        print("No commits in range")
+        return
+    print("Commits per day (UTC days)")
+    for key, value in counts.items():
+        print(f"    {key}: {value}")
+    raw_values = counts.values()
+    print(f"Max: {max(raw_values)}, Mean: {mean(raw_values)}, Min: {min(raw_values)}")
 
 
 @app.command("strongest-pairs")

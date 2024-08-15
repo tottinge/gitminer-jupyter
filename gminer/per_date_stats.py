@@ -1,35 +1,32 @@
 from collections import Counter
 from datetime import datetime
-from statistics import mean
 from typing import Optional
 
 import pandas
 from pytz import utc
 
-from gminer.utility import read_git_history_from_file
+from gminer.types import GitHistoryDataframe
 
 
-def report_commits_per_day(json_file, *, after: datetime = None, before: datetime = None):
+def count_commits_per_day(history_df: GitHistoryDataframe, *, after: datetime = None,
+                          before: datetime = None) -> Counter:
     """
     I suspect that this can be done entirely in Pandas, but
     not knowing how, I fell back on Counter() to count the
     number of commits per day.
     """
-    p = read_git_history_from_file(json_file)
-    conditional = conditional_range(after, before)
+    between_dates = conditional_range(after, before)
 
-    counts = Counter(d.date() for d in pandas.to_datetime(p['date'], utc=True) if conditional(d))
-
-    print("Commits per day (UTC days)")
-    for key, value in counts.items():
-        print(f"    {key}: {value}")
-
-    raw_values = counts.values()
-    print(f"Max: {max(raw_values)}, Mean: {mean(raw_values)}, Min: {min(raw_values)}")
+    counts = Counter(
+        d.date()
+        for d in pandas.to_datetime(history_df['date'], utc=True)
+        if between_dates(d)
+    )
+    return counts
 
 
 if __name__ == '__main__':
-    report_commits_per_day('miner.json')
+    count_commits_per_day('miner.json')
 
 
 def if_version_of_conditional_range(low_value: Optional[datetime], high_value: Optional[datetime]):
