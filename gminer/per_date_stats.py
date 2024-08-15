@@ -6,6 +6,7 @@ import pandas
 from pytz import utc
 
 from gminer.types import GitHistoryDataframe
+from gminer.utility import read_git_history_from_file
 
 
 def count_commits_per_day(history_df: GitHistoryDataframe, *, after: datetime = None,
@@ -19,14 +20,14 @@ def count_commits_per_day(history_df: GitHistoryDataframe, *, after: datetime = 
 
     counts = Counter(
         d.date()
-        for d in pandas.to_datetime(history_df['date'], utc=True)
+        for d in pandas.to_datetime(history_df.date, utc=True)
         if between_dates(d)
     )
     return counts
 
 
 if __name__ == '__main__':
-    count_commits_per_day('miner.json')
+    count_commits_per_day(read_git_history_from_file('miner.json'))
 
 
 def if_version_of_conditional_range(low_value: Optional[datetime], high_value: Optional[datetime]):
