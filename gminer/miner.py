@@ -1,15 +1,19 @@
 #!python3
 import logging
+import os
 import re
 from collections import Counter
 from datetime import datetime, timedelta
+from os.path import isdir, isfile
 from statistics import mean
 
+import git.repo.fun
 import pandas as pd
 import typer
 from git import Repo
 from typing_extensions import Annotated
 
+import gminer.types
 from gminer.utility import read_git_history_from_file
 from .associative_modularity import strongest_pairs_by_ranking
 
@@ -21,8 +25,8 @@ logger = logging.getLogger(__name__)
 def release_frequency(path_to_repo: str, tag_regex: str) -> None:
     import git
     repo = git.Repo(path_to_repo)
-    df = release_tag_intervals(repo, tag_regex)
-    timings = df['interval']
+    df: pd.DataFrame = release_tag_intervals(repo, tag_regex)
+    timings: pd.Series = df.interval
     print(f"Max {timings.max()}\nMin {timings.min()}\nMean: {timings.mean()}")
 
     # draw a picture
@@ -35,7 +39,7 @@ def release_frequency(path_to_repo: str, tag_regex: str) -> None:
     figure.write_image("sample.png", format="png")
 
 
-def release_tag_intervals(repo: Repo, pattern: str):
+def release_tag_intervals(repo: Repo, pattern: str) -> pd.DataFrame:
     source = ((tag_ref.name, tag_ref.commit.authored_datetime.replace(minute=0, second=0, microsecond=0))
               for tag_ref in repo.tags)
     raw_df = pd.DataFrame(data=source, columns=["name", "timestamp"])
@@ -141,6 +145,23 @@ def tightest_groupings(
     from .associative_modularity import tight_groupings
     since = after.date() if after else (datetime.now().date() - timedelta(weeks=52))
     tight_groupings(json_file, since.isoformat())
+
+
+def analyze_and_report(source: str, destination: str):
+    repo: git.Repo
+    extract: gminer.types.GitHistoryDataframe
+
+    if not isdir(source) and not isfile(source):
+        raise ValueError(source, "not a dir or a repo extract file")
+    if not isdir(destination):
+        os.makedirs(destination)
+    else:
+        ...  # Empty or version existing files
+
+    if isdir(source) and git.repo.fun.is_git_dir(source):
+        ...  # do all the things we can do with a repo
+    else:
+        ...  # do all the
 
 
 if __name__ == "__main__":
