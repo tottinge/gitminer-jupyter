@@ -7,10 +7,10 @@ from datetime import datetime, timedelta
 from os.path import isdir, isfile
 from statistics import mean
 
+import git
 import git.repo.fun
 import pandas as pd
 import typer
-from git import Repo
 from typing_extensions import Annotated
 
 import gminer.types
@@ -23,7 +23,6 @@ logger = logging.getLogger(__name__)
 
 @app.command("release-freq")
 def release_frequency(path_to_repo: str, tag_regex: str) -> None:
-    import git
     repo = git.Repo(path_to_repo)
     df: pd.DataFrame = release_tag_intervals(repo, tag_regex)
     timings: pd.Series = df.interval
@@ -39,7 +38,7 @@ def release_frequency(path_to_repo: str, tag_regex: str) -> None:
     figure.write_image("sample.png", format="png")
 
 
-def release_tag_intervals(repo: Repo, pattern: str) -> pd.DataFrame:
+def release_tag_intervals(repo: git.Repo, pattern: str) -> pd.DataFrame:
     source = ((tag_ref.name, tag_ref.commit.authored_datetime.replace(minute=0, second=0, microsecond=0))
               for tag_ref in repo.tags)
     raw_df = pd.DataFrame(data=source, columns=["name", "timestamp"])
@@ -56,7 +55,7 @@ def release_tag_intervals(repo: Repo, pattern: str) -> pd.DataFrame:
     return filtered_df
 
 
-def releases_by_week_numbers(repo: Repo, year, pattern: str):
+def releases_by_week_numbers(repo: git.Repo, year, pattern: str):
     release_pattern = re.compile(pattern)
     year_of = lambda x: x.commit.authored_datetime.isocalendar().year
     week_of = lambda x: x.commit.authored_datetime.isocalendar().week
@@ -91,7 +90,7 @@ def cli_extract_to_json(repo_path: str):
     Extract the contents of early git repo to early json file
     """
     from .extractor import dump_it
-    source: Repo = Repo(repo_path)
+    source: git.Repo = git.Repo(repo_path)
     dump_it(source)
 
 
