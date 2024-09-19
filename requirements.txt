@@ -4,8 +4,8 @@ matplotlib
 jupyter
 scipy
 pytest
-typer~=0.7.0
-pandas~=2.1.3
+typer
+pandas
 typing_extensions~=4.8.0
 build
 rich
