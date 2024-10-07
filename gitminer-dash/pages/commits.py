@@ -4,6 +4,7 @@ import dash
 import pandas as pd
 import plotly.express as px
 from dash import html, dcc
+from dash.dash_table import DataTable
 
 dash.register_page(__name__, path="/")
 
@@ -44,7 +45,7 @@ layout = html.Div(
         html.H2("This is the commits page"),
         dcc.Graph(id="local_graph",
                   figure=px.bar(
-                      poo := prepared_data_frame(),
+                      data := prepared_data_frame(),
                       title=f"Changes Across Tags",
                       x="Name",
                       y=list(change_name.values()),
@@ -53,5 +54,9 @@ layout = html.Div(
                       hover_data=["Date"],
                       text_auto='.2s'
                   )),
+        DataTable(
+            data=data.to_dict('records')
+        ),
+
     ]
 )
