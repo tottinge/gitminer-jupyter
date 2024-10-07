@@ -1,40 +1,11 @@
 from collections import Counter
-from datetime import datetime, timedelta
 
 import dash
 import pandas as pd
 import plotly.express as px
 from dash import html, dcc
-from git import Repo
-from pandas import DataFrame
 
 dash.register_page(__name__, path="/")
-
-
-def create_tag_interval_df(repo: Repo, since: datetime) -> pd.DataFrame:
-    source = ((tag_ref.name, tag_ref.commit.authored_datetime) for tag_ref in repo.tags)
-    raw_df = pd.DataFrame(data=source, columns=["name", "timestamp"])
-    if raw_df.empty:
-        return raw_df
-    raw_df["timestamp"] = pd.to_datetime(raw_df["timestamp"], utc=True)
-    sorted_df = raw_df.sort_values(by=["timestamp"])
-    graph_df = sorted_df[sorted_df['timestamp'] > since].copy()
-    graph_df['interval'] = graph_df['timestamp'].diff()
-    return graph_df
-
-
-ninety_days = datetime.today().astimezone() - timedelta(days=90)
-
-
-def collect_diff_counts(repo: Repo, graph_df: DataFrame):
-    earlier_label = graph_df.iloc[0]['name']
-    diff_counts = []
-    for index, data in graph_df.iterrows():
-        current_label = data['name']
-        diffs = repo.commit(earlier_label).diff(current_label)
-        diff_counts.append(len(diffs))
-        earlier_label = current_label
-    return diff_counts
 
 
 def change_series(start, last_20):
@@ -52,14 +23,8 @@ def prepared_data_frame():
     import data
     repo = data.get_repo(data.repository_path)
 
-    # # Collect the time between tags and diff countes
-    # graph_df = create_tag_interval_df(repo, ninety_days)
-    # graph_df['timestamp'] = pd.to_datetime(graph_df['timestamp'], utc=True)
-    # graph_df['diff_counts'] = collect_diff_counts(repo, graph_df)
-
     # Get the most recent 20 tags
-    by_date = lambda x: x.commit.authored_datetime
-    sorted_tags = sorted(repo.tags, key=by_date)
+    sorted_tags = sorted(repo.tags, key=(lambda x: x.commit.authored_datetime))
     last_20 = sorted_tags[-20:]
 
     # Get the Date, Name, and counters for the most recent commit diffs
