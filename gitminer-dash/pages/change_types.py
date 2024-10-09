@@ -4,7 +4,7 @@ import plotly.express as px
 # Note: PyCharm tags these as invalid imports, but we run
 # the app from the parent dir and these are okay.
 from algorithms.change_series import change_series, change_name
-from algorithms.sorted_commits import get_most_recent_tags
+from algorithms.sorted_tags import get_most_recent_tags
 from dash import html, dcc
 from dash.dash_table import DataTable
 from data import get_repo
