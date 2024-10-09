@@ -8,5 +8,5 @@ repository_path = "/Users/timottinger/Projects/goreleaser"
 
 
 @cache
-def get_repo(path: str) -> Repo:
+def get_repo(path: str = repository_path) -> Repo:
     return Repo(path)
