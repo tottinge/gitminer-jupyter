@@ -9,7 +9,7 @@ from dash import html, dcc
 from dash.dash_table import DataTable
 from data import get_repo
 
-dash.register_page("Change Types", path="/")
+dash.register_page(__name__, path="/")
 
 
 def prepared_data_frame():
