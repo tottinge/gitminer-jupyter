@@ -1,16 +1,18 @@
 import dash
 import pandas as pd
 import plotly.express as px
+# Note: PyCharm tags these as invalid imports, but we run
+# the app from the parent dir and these are okay.
 from algorithms.change_series import change_series, change_name
 from algorithms.sorted_commits import get_most_recent_tags
 from dash import html, dcc
 from dash.dash_table import DataTable
+from data import get_repo
 
 dash.register_page("Change Types", path="/")
 
 
 def prepared_data_frame():
-    from data import get_repo
     repo = get_repo()
 
     last_20 = get_most_recent_tags(repo, 20)
