@@ -9,6 +9,8 @@ from dash.dash_table import DataTable
 dash.register_page(__name__, title="Merge Sizes")
 
 
+# Doing this synchronously here (called in the layout)
+# makes startup time very slow.
 def prepare_dataframe():
     import data
     repo = data.get_repo()
@@ -35,6 +37,7 @@ def prepare_dataframe():
 layout = html.Div(
     [
         html.H2("Merge Magnitudes"),
+        dcc.Source(id='merge-data', ),
         dcc.Graph(
             id="merge-graph",
             figure=px.bar(
