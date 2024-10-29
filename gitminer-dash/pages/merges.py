@@ -42,23 +42,23 @@ layout = html.Div(
     [
         html.H2("Merge Magnitudes"),
         html.Button(id="refresh-button", children="Refresh"),
-        dcc.Store(id='merge-data'),
-        dcc.Graph(id="merge-graph"),
+        html.Div(id="merge-graph-container"),
     ]
 )
 
 
 @callback(
-    Output("merge-graph", "figure"),
+    Output("merge-graph-container", "children"),
     Input("refresh-button", "n_clicks"),
     running=[Output("refresh-button", "disabled"), True, False]
 )
 def update_merge_graph(n_clicks: int):
     print("clicks", n_clicks)
     if not n_clicks:
-        return None
+        return html.H3("press refresh to acquire graph")
     data_frame = prepare_dataframe()
+    print(data_frame.columns)
     bar_chart_figure = px.bar(data_frame=data_frame, x="date", y="lines", color="files", hover_name="date",
                               hover_data=["files", "lines", "comment"])
     print(bar_chart_figure.to_json())
-    return bar_chart_figure
+    return [dcc.Graph(figure=bar_chart_figure)]
