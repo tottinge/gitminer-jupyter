@@ -1,15 +1,15 @@
-import dash
+
 import pandas as pd
 import plotly.express as px
 # Note: PyCharm tags these as invalid imports, but we run
 # the app from the parent dir and these are okay.
 from algorithms.change_series import change_series, change_name
 from algorithms.sorted_tags import get_most_recent_tags
-from dash import html, dcc
+from dash import html, dcc, register_page
 from dash.dash_table import DataTable
-from data import get_repo
+from data_frame import get_repo
 
-dash.register_page(
+register_page(
     path="/",  # this is the root page (for now)
     module=__name__,  # Where it's found
     name="Change Types",  # Menu item name

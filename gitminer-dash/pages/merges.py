@@ -1,19 +1,18 @@
 from datetime import datetime, timedelta
 
-import dash
 import pandas as pd
 import plotly.express as px
-from dash import html, dcc
+from dash import register_page, html, dcc
 from dash.dash_table import DataTable
+import data_frame
 
-dash.register_page(__name__, title="Merge Sizes")
+register_page(__name__, title="Merge Sizes")
 
 
 # Doing this synchronously here (called in the layout)
 # makes startup time very slow.
 def prepare_dataframe():
-    import data
-    repo = data.get_repo()
+    repo = data_frame.get_repo()
 
     recent_date = datetime.today().astimezone() - timedelta(days=30)
     recent_merges = [commit for commit in repo.iter_commits()
@@ -30,7 +29,6 @@ def prepare_dataframe():
         for commit in recent_merges
     )
     result = pd.DataFrame(source, columns=columns).sort_values(by="date")
-    print(result)
     return result
 
 
@@ -41,7 +39,7 @@ layout = html.Div(
         dcc.Graph(
             id="merge-graph",
             figure=px.bar(
-                data := prepare_dataframe(),
+                data_frame := prepare_dataframe(),
                 x="date",
                 y="lines",
                 color="files",
@@ -50,6 +48,6 @@ layout = html.Div(
             )),
         html.Hr(),
         html.H2("Raw Data"),
-        DataTable(data=data.to_dict("records"))
+        DataTable(data=data_frame.to_dict("records"))
     ]
 )

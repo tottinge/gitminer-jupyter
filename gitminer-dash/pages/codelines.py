@@ -1,7 +1,7 @@
-import dash
-from dash import html
 
-dash.register_page(__name__)
+from dash import html, register_page
+
+register_page(__name__)
 
 layout = html.Div(
     [

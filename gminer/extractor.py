@@ -28,6 +28,12 @@ def emit_commit_records_as_json(repository: Repo):
 
 def dump_it(repository: Repo):
     commit: Commit
+
+    # Workaround for Windows powershell encoding issues
+    import os, sys
+    if os.name == "nt":
+        sys.stdout.reconfigure(encoding='utf-8')
+
     print("[")
     for line_number, record in enumerate(emit_commit_records_as_json(repository)):
         if line_number > 0:
