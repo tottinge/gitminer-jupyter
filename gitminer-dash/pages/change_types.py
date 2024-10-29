@@ -1,13 +1,13 @@
-
 import pandas as pd
 import plotly.express as px
+from dash import html, dcc, register_page
+from dash.dash_table import DataTable
+
 # Note: PyCharm tags these as invalid imports, but we run
 # the app from the parent dir and these are okay.
 from algorithms.change_series import change_series, change_name
 from algorithms.sorted_tags import get_most_recent_tags
-from dash import html, dcc, register_page
-from dash.dash_table import DataTable
-from data_frame import get_repo
+from data import get_repo
 
 register_page(
     path="/",  # this is the root page (for now)
