@@ -16,8 +16,7 @@ def prepare_dataframe():
     recent_date = datetime.today().astimezone() - timedelta(days=30)
     recent_merges = [
         commit for commit in repo.iter_commits()
-        if commit.committed_datetime > recent_date
-           and len(commit.parents) > 1
+        if (commit.committed_datetime > recent_date and len(commit.parents) > 1)
     ]
     columns = [
         "hash",
@@ -53,6 +52,8 @@ layout = html.Div(
     Input("refresh-button", "n_clicks")
 )
 def update_merge_graph(n_clicks: int):
+    if not n_clicks:
+        return None
     data_frame = prepare_dataframe()
     return px.bar(
         data_frame,
