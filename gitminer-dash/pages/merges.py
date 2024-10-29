@@ -34,6 +34,7 @@ def prepare_dataframe():
         for commit in recent_merges
     )
     result = pd.DataFrame(source, columns=columns).sort_values(by="date")
+    print("Records:", result)
     return result
 
 
@@ -41,7 +42,7 @@ layout = html.Div(
     [
         html.H2("Merge Magnitudes"),
         html.Button(id="refresh-button", children="Refresh"),
-        dcc.Store(id='merge-data', ),
+        dcc.Store(id='merge-data'),
         dcc.Graph(id="merge-graph"),
     ]
 )
@@ -49,17 +50,15 @@ layout = html.Div(
 
 @callback(
     Output("merge-graph", "figure"),
-    Input("refresh-button", "n_clicks")
+    Input("refresh-button", "n_clicks"),
+    running=[Output("refresh-button", "disabled"), True, False]
 )
 def update_merge_graph(n_clicks: int):
+    print("clicks", n_clicks)
     if not n_clicks:
         return None
     data_frame = prepare_dataframe()
-    return px.bar(
-        data_frame,
-        x="date",
-        y="lines",
-        color="files",
-        hover_name="date",
-        hover_data=["files", "lines", "comment"]
-    )
+    bar_chart_figure = px.bar(data_frame=data_frame, x="date", y="lines", color="files", hover_name="date",
+                              hover_data=["files", "lines", "comment"])
+    print(bar_chart_figure.to_json())
+    return bar_chart_figure
