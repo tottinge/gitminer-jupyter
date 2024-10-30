@@ -60,11 +60,15 @@ def update_code_lines_graph(n_clicks: int):
         nodelist = [graph.nodes[key] for key in chain]
         ordered = sorted(nodelist, key=lambda x: x['committed'])
         earliest, latest = ordered[0], ordered[-1]
-        duration = latest['committed'] - earliest['committed']
-        height = stacker.height_for([earliest['committed'], latest['committed']])
+
+        early_timestamp = earliest['committed']
+        late_timestamp = latest['committed']
+
+        duration = late_timestamp - early_timestamp
+        height = stacker.height_for([early_timestamp, late_timestamp])
         rows.append(dict(
-            first=earliest['committed'].isoformat(),
-            last=latest['committed'].isoformat(),
+            first=early_timestamp.isoformat(),
+            last=late_timestamp.isoformat(),
             elevation=height,
             commits=len(chain),
             head=earliest['sha'],
