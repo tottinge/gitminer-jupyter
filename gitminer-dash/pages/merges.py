@@ -12,11 +12,11 @@ register_page(__name__, title="Merge Sizes")
 # Doing this synchronously here (called in the layout)
 # makes startup time very slow.
 def prepare_dataframe():
-    repo = data.get_repo()
-    recent_date = datetime.today().astimezone() - timedelta(days=30)
+    today = datetime.today().astimezone()
+    start_date = today - timedelta(days=30)
     recent_merges = [
-        commit for commit in repo.iter_commits()
-        if (commit.committed_datetime > recent_date and len(commit.parents) > 1)
+        commit for commit in data.commits_in_period(start_date, today)
+        if len(commit.parents) > 1
     ]
     columns = [
         "hash",
@@ -53,12 +53,9 @@ layout = html.Div(
     running=[Output("refresh-button", "disabled"), True, False]
 )
 def update_merge_graph(n_clicks: int):
-    print("clicks", n_clicks)
     if not n_clicks:
         return html.H3("press refresh to acquire graph")
     data_frame = prepare_dataframe()
-    print(data_frame.columns)
     bar_chart_figure = px.bar(data_frame=data_frame, x="date", y="lines", color="files", hover_name="date",
                               hover_data=["files", "lines", "comment"])
-    print(bar_chart_figure.to_json())
     return [dcc.Graph(figure=bar_chart_figure)]
