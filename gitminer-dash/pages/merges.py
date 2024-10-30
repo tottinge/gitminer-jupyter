@@ -34,14 +34,13 @@ def prepare_dataframe():
         for commit in recent_merges
     )
     result = pd.DataFrame(source, columns=columns).sort_values(by="date")
-    print("Records:", result)
     return result
 
 
 layout = html.Div(
     [
         html.H2("Merge Magnitudes"),
-        html.Button(id="refresh-button", children="Refresh"),
+        html.Button(id="merge-refresh-button", children="Refresh"),
         html.Div(id="merge-graph-container"),
     ]
 )
@@ -49,8 +48,9 @@ layout = html.Div(
 
 @callback(
     Output("merge-graph-container", "children"),
-    Input("refresh-button", "n_clicks"),
-    running=[Output("refresh-button", "disabled"), True, False]
+    Input("merge-refresh-button", "n_clicks"),
+    running=[Output("merge-refresh-button", "disabled"), True, False],
+    prevent_initial_call=True
 )
 def update_merge_graph(n_clicks: int):
     if not n_clicks:

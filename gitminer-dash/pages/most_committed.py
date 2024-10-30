@@ -1,6 +1,6 @@
+import plotly.express as px
 from dash import html, register_page, dcc, callback, Output, Input
 from dash.dash_table import DataTable
-import plotly.express as px
 from pandas import DataFrame
 
 fake_data = [
@@ -24,8 +24,8 @@ layout = html.Div(
         DataTable(id='table-data')
     ]
 
-
 )
+
 
 @callback(
     Output('page-content', 'figure'),
@@ -35,9 +35,11 @@ def populate_graph(period_input):
     frame = DataFrame(data=fake_data, columns=['filename', 'count'])
     return px.bar(data_frame=frame, x='filename', y='count')
 
+
 @callback(
     Output('table-data', 'data'),
-    Input('period-dropdown', 'value')
+    Input('period-dropdown', 'value'),
+    prevent_initial_call=True
 )
 def populate_table(period_input):
     frame = DataFrame(data=fake_data, columns=['filename', 'count'])

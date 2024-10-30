@@ -2,18 +2,23 @@ from datetime import datetime, timedelta
 
 import networkx as nx
 import plotly.express as px
-from dash import html, register_page, callback, Output, Input
+from dash import html, register_page, callback, Output, Input, dcc
 from pandas import DataFrame
 
 from data import commits_in_period
 
-register_page(__name__)
+register_page(module=__name__, title="Code Lines")
 
 
 @callback(
-    Output("code-lines-container", "children"),
+    Output("code-lines-graph", "figure"),
     Input("code-lines-refresh-button", "n_clicks"),
-    running=[Output("code-lines-refresh", "disabled"), True, False]
+    running=[
+        (Output("code-lines-refresh-button", "disabled"), True, False),
+        (Output("code-lines-refresh-button", "children"), "Calculating", "Refresh")
+    ],
+    prevent_initial_call=True
+
 )
 def update_graph():
     end_date = datetime.today().astimezone()  # datetime.today().astimezone()
@@ -42,8 +47,8 @@ def update_graph():
 
 layout = html.Div(
     [
-        html.H2("This is the Code Lines page"),
+        html.H2("Lines of Code"),
         html.Button(id="code-lines-refresh-button", children="Refresh"),
-        html.Div(id="code-lines-container", children=[update_graph()])
+        dcc.Graph(id="code-lines-graph")
     ]
 )
