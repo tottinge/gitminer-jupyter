@@ -21,6 +21,8 @@ def prepared_data_frame():
 
     last_20 = get_most_recent_tags(repo, 20)
 
+    if not last_20:
+        return pd.DataFrame(columns=['Name', 'Date'])
     # Get the Date, Name, and counters for the most recent commit diffs
     categorized_commits = change_series(start=last_20[0], commit_refs=last_20)
     change_df = pd.DataFrame(categorized_commits)
