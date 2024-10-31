@@ -50,6 +50,7 @@ def calculate_usages(period: str):
             counter.update(files)
         except Exception as e:
             print("Stop me if you've seen this one before")
+            raise e
     return counter.most_common(25)
 
 
