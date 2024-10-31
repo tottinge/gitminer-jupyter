@@ -15,12 +15,12 @@ layout = html.Div(
         html.H2("Lines of Code"),
         html.Button(id="code-lines-refresh-button", children=["Refresh"]),
         dcc.Graph(id="code-lines-graph"),
-        html.P(id="description", children=[
+        html.P(id="code-lines-description-1", children=[
             "In git, commits reference their parent. "
             "A code line is a series of single-parent "
             "(non-merge) commits where each one references the one before it."
         ]),
-        html.P(id="description", children=[
+        html.P(id="code-lines-description-2", children=[
             "By examining code lines, we can see how much concurrent activity is taking place "
             "and if the developers commit often or seldom (relative to other code lines)."
         ])
@@ -60,7 +60,7 @@ def update_code_lines_graph(n_clicks: int):
             )
             graph.add_edge(
                 parent.hexsha,
-                commit.hexsha,
+                commit.hexsha
             )
 
     # Convert connected chains to begin/end pairs of dates
@@ -77,28 +77,28 @@ def update_code_lines_graph(n_clicks: int):
         late_timestamp = latest['committed']
 
         duration = late_timestamp - early_timestamp
-        commits = len(chain)
-        record = (early_timestamp, late_timestamp, commits, duration, earliest, latest)
+        commit_counts = len(chain)
+        record = (early_timestamp, late_timestamp, commit_counts, duration, earliest, latest)
 
         chain_summary.append(record)
 
     for data in sorted(chain_summary):
-        early_timestamp, late_timestamp, commits, duration, earliest, latest = data
+        early_timestamp, late_timestamp, commit_counts, duration, earliest, latest = data
         height = stacker.height_for([early_timestamp, late_timestamp])
         rows.append(dict(
             first=early_timestamp.isoformat(),
             last=late_timestamp.isoformat(),
             elevation=height,
-            commits=commits,
+            commits=commit_counts,
             head=earliest['sha'],
             tail=latest['sha'],
             duration=duration.days,
-            density=(duration.days) / commits
+            density=(duration.days) / commit_counts
         ))
 
     df = DataFrame(
         rows,
-        columns=['first', 'last', 'elevation', 'commits', 'head', 'tail', 'duration', 'density']
+        columns=['first', 'last', 'elevation', 'commit_counts', 'head', 'tail', 'duration', 'density']
     )
     figure = px.timeline(
         data_frame=df,
@@ -119,7 +119,7 @@ def update_code_lines_graph(n_clicks: int):
             'head': True,
             'last': True,
             'tail': True,
-            'commits': True,
+            'commit_counts': True,
             'duration': True,
             'elevation': False,
             'density': True
