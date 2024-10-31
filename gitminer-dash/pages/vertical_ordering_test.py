@@ -41,6 +41,20 @@ class MyTestCase(unittest.TestCase):
         for sequence, expected in test_cases:
             self.assertEqual(expected, stacked_graph.height_for(sequence))
 
+    def reversed_sequence_should_be_the_same(self):
+        stacked_graph = SequenceStacker()
+        disorderly = [
+            ([18, 20], 1),
+            ((4, 12), 1),
+            ([6, 10], 2),
+            ([13, 15], 1),
+            ([1, 20], 3),
+            ([1, 5], 1),
+            ([2, 10], 4)
+        ]
+        for sequence, expected in disorderly:
+            self.assertEqual(expected, stacked_graph.height_for(sequence))
+
 
 if __name__ == '__main__':
     unittest.main()
