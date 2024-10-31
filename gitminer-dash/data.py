@@ -14,7 +14,6 @@ def repository_path() -> str:
     return sys.argv[1]
 
 
-@cache
 def get_repo() -> Repo:
     return Repo(repository_path())
 
