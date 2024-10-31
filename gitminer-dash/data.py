@@ -7,9 +7,10 @@ from functools import cache
 
 from git import Repo, Commit
 
+
 # Link this to any local repo, until we can make this
 # a handy-dandy drag-n-drop or dir selection input field
-def repository_path():
+def repository_path() -> str:
     return sys.argv[1]
 
 
@@ -24,6 +25,10 @@ def get_repo_name():
 
 
 def commits_in_period(beginning: datetime, ending: datetime) -> Iterable[Commit]:
-    for commit in get_repo().iter_commits():
-        if beginning <= commit.committed_datetime <= ending:
-            yield commit
+    for delta in get_repo().iter_commits():
+        if not hasattr(delta, 'committed_datetime'):
+            print("PUKE!")
+            continue
+        this_date = delta.committed_datetime
+        if beginning <= this_date <= ending:
+            yield delta
