@@ -1,7 +1,12 @@
+from collections import Counter
+from datetime import datetime, timedelta
+
 import plotly.express as px
 from dash import html, register_page, dcc, callback, Output, Input
 from dash.dash_table import DataTable
 from pandas import DataFrame
+
+import data
 
 fake_data = [
     ("common.py", 800),
@@ -26,13 +31,25 @@ layout = html.Div(
 
 )
 
+def calculate_usages(period: str):
+    days = 90
+    if "30" in period:
+        days = 30
+    end = datetime.today().astimezone()
+    begin = end - timedelta(days=days)
+    counter = Counter()
+    for commit in data.commits_in_period(begin, end):
+        for file in commit.files:
+            counter[file] += 1
+    return counter.most_common(25)
 
 @callback(
     Output('page-content', 'figure'),
     Input('period-dropdown', 'value')
 )
 def populate_graph(period_input):
-    frame = DataFrame(data=fake_data, columns=['filename', 'count'])
+    usages = calculate_usages(period_input)
+    frame = DataFrame(data=usages, columns=['filename', 'count'])
     return px.bar(data_frame=frame, x='filename', y='count')
 
 
@@ -42,5 +59,6 @@ def populate_graph(period_input):
     prevent_initial_call=True
 )
 def populate_table(period_input):
-    frame = DataFrame(data=fake_data, columns=['filename', 'count'])
+    usages = calculate_usages(period_input)
+    frame = DataFrame(data=usages, columns=['filename', 'count'])
     return frame.to_dict('records')
