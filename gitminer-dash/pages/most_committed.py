@@ -22,7 +22,11 @@ register_page(
 layout = html.Div(
     [
         html.H2("Most Often Committed Files"),
-        dcc.Dropdown(id='period-dropdown', options=['Last 30 days', 'Last 60 days']),
+        dcc.Dropdown(id='period-dropdown', options=[
+            'Last 30 days',
+            'Last 60 days',
+            'Last 90 days'
+        ]),
         # html.Div(id='page-content', children=[]),
         dcc.Graph(id='page-content'),
         html.Hr(),
@@ -38,6 +42,8 @@ def calculate_usages(period: str):
     days = 14
     if "30" in period:
         days = 30
+    elif "60" in period:
+        days = 60
     elif "90" in period:
         days = 90
 
