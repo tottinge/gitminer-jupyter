@@ -25,9 +25,6 @@ def get_repo_name():
 
 def commits_in_period(beginning: datetime, ending: datetime) -> Iterable[Commit]:
     for delta in get_repo().iter_commits():
-        if not hasattr(delta, 'committed_datetime'):
-            print("PUKE!")
-            continue
         this_date = delta.committed_datetime
         if beginning <= this_date <= ending:
             yield delta

@@ -35,9 +35,11 @@ layout = html.Div(
 
 def calculate_usages(period: str):
     period = period or ""
-    days = 90
+    days = 14
     if "30" in period:
         days = 30
+    elif "90" in period:
+        days = 90
 
     end = datetime.today().astimezone()
     begin = end - timedelta(days=days)
@@ -48,7 +50,7 @@ def calculate_usages(period: str):
         try:
             files = commit.stats.files.keys()
             counter.update(files)
-        except Exception as e:
+        except ValueError as e:
             print("Stop me if you've seen this one before")
             raise e
     return counter.most_common(25)
