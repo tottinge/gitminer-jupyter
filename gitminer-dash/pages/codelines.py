@@ -14,7 +14,7 @@ layout = html.Div(
     [
         html.H2("Lines of Code"),
         html.Button(id="code-lines-refresh-button", children=["Refresh"]),
-        dcc.Graph(id="code-lines-graph"),
+        dcc.Graph(id="code-lines-graph", figure={"data": []}),
         html.P(id="code-lines-description-1", children=[
             "In git, commits reference their parent. "
             "A code line is a series of single-parent "
@@ -32,7 +32,6 @@ layout = html.Div(
 @callback(
     Output("code-lines-graph", "figure"),
     Input("code-lines-refresh-button", "n_clicks"),
-    prevent_initial_call=True,
     running=(Output('code-lines-refresh-button', 'disabled'), True, False)
 
 )

@@ -26,12 +26,18 @@ layout = html.Div(
             'Last 30 days',
             'Last 60 days',
             'Last 90 days'
-        ]),
+        ], value='Last 30 days'),
         # html.Div(id='page-content', children=[]),
-        dcc.Graph(id='page-content'),
+        dcc.Graph(id='page-content', figure={"data": []}),
         html.Hr(),
         html.H2("Source Data"),
-        DataTable(id='table-data')
+        html.Div(
+            id='id-most-committed-graph-holder',
+            style={"display": "none"},
+            children=[
+                DataTable(id='table-data')
+            ]
+        ),
     ]
 
 )
@@ -63,7 +69,11 @@ def calculate_usages(period: str):
 
 
 @callback(
-    Output('page-content', 'figure'),
+    [
+        Output('page-content', 'figure'),
+        Output('table-data', 'data'),
+        Output('id-most-committed-graph-holder', 'style')
+    ],
     Input('period-dropdown', 'value')
 )
 def populate_graph(period_input):
@@ -71,17 +81,10 @@ def populate_graph(period_input):
         raise PreventUpdate
     usages = calculate_usages(period_input)
     frame = DataFrame(data=usages, columns=['filename', 'count'])
-    return px.bar(data_frame=frame, x='filename', y='count')
+    figure = px.bar(data_frame=frame, x='filename', y='count')
 
-
-@callback(
-    Output('table-data', 'data'),
-    Input('period-dropdown', 'value'),
-    prevent_initial_call=True
-)
-def populate_table(period_input):
-    if not period_input:
-        raise PreventUpdate
-    usages = calculate_usages(period_input)
     frame = DataFrame(data=usages, columns=['filename', 'count'])
-    return frame.to_dict('records')
+    table_data = frame.to_dict('records')
+
+    style_show = {"display": "block"}
+    return figure, table_data, style_show
