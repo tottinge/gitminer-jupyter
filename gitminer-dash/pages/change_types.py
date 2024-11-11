@@ -33,7 +33,7 @@ def prepared_data_frame():
 layout = html.Div(
     [
         html.Div(id="id-graph-container",
-                 children=[dcc.Graph(id="local_graph", style={"display": "none"}),
+                 children=[dcc.Graph(id="local_graph"),
                            html.P(id="id-no-data-message", children="No data available."),
                            ],
                  ),
