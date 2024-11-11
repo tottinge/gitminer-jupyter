@@ -9,11 +9,6 @@ from pandas import DataFrame
 
 import data
 
-fake_data = [
-    ("common.py", 800),
-    ("rare.py", 45)
-]
-
 register_page(
     module=__name__,  # Where it's found
     name="Most Committed",  # Menu item name
@@ -65,7 +60,7 @@ def calculate_usages(period: str):
         except ValueError as e:
             print("Stop me if you've seen this one before")
             raise e
-    return counter.most_common(25)
+    return counter.most_common(20)
 
 
 @callback(
