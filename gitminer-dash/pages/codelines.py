@@ -44,7 +44,7 @@ layout = html.Div(
     running=(Output('code-lines-refresh-button', 'disabled'), True, False)
 
 )
-def update_code_lines_graph(n_clicks: int):
+def update_code_lines_graph(_: int):
     show = {"display": "block"}
 
     days_duration = 30
@@ -103,7 +103,7 @@ def update_code_lines_graph(n_clicks: int):
             head=earliest['sha'],
             tail=latest['sha'],
             duration=duration.days,
-            density=(duration.days) / commit_counts
+            density=duration.days / commit_counts
         ))
 
     df = DataFrame(
