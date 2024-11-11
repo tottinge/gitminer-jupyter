@@ -14,7 +14,13 @@ layout = html.Div(
     [
         html.H2("Lines of Code"),
         html.Button(id="code-lines-refresh-button", children=["Refresh"]),
-        dcc.Graph(id="code-lines-graph", figure={"data": []}),
+        html.Div(
+            id="id-code-lines-container",
+            style={"display": "none"},
+            children=[
+                dcc.Graph(id="code-lines-graph", figure={"data": []}),
+            ]
+        ),
         html.P(id="code-lines-description-1", children=[
             "In git, commits reference their parent. "
             "A code line is a series of single-parent "
@@ -30,12 +36,17 @@ layout = html.Div(
 
 
 @callback(
-    Output("code-lines-graph", "figure"),
+    [
+        Output("code-lines-graph", "figure"),
+        Output("id-code-lines-container", "style")
+    ],
     Input("code-lines-refresh-button", "n_clicks"),
     running=(Output('code-lines-refresh-button', 'disabled'), True, False)
 
 )
 def update_code_lines_graph(n_clicks: int):
+    show = {"display": "block"}
+
     days_duration = 30
     end_date = datetime.today().astimezone()  # datetime.today().astimezone()
     start_date = end_date - timedelta(days=days_duration)  # until_today - timedelta(days=90)
@@ -124,4 +135,4 @@ def update_code_lines_graph(n_clicks: int):
             'density': True
         }
     )
-    return figure
+    return figure, show
