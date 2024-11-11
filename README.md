@@ -12,7 +12,9 @@ Once you have that extract, you can run the various analytic tools on
 the json file. You don't need to have the source code or the actual
 git repository handy.
 
-There is a dash app for visualization  
+There is a dash app for visualization. You may launch it by going to the gitminer-dash directory and typing 'python
+app.py _repo-path_ where
+_repo_path_ is the directory path to a repository on your computer.
 
 # Setup
 
