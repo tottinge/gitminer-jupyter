@@ -70,7 +70,8 @@ def calculate_usages(period: str):
         Output('table-data', 'data'),
         Output('id-most-committed-graph-holder', 'style')
     ],
-    Input('period-dropdown', 'value')
+    Input('period-dropdown', 'value'),
+    running=(Output('period-dropdown', 'disabled'), True, False)
 )
 def populate_graph(period_input):
     if not period_input:
