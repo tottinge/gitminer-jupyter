@@ -8,6 +8,14 @@ import data
 
 register_page(__name__, title="Merge Sizes")
 
+layout = html.Div(
+    [
+        html.H2("Merge Magnitudes"),
+        html.Button(id="merge-refresh-button", children="Refresh"),
+        html.Div(id="merge-graph-container"),
+    ]
+)
+
 
 # Doing this synchronously here (called in the layout)
 # makes startup time very slow.
@@ -37,25 +45,21 @@ def prepare_dataframe():
     return result
 
 
-layout = html.Div(
-    [
-        html.H2("Merge Magnitudes"),
-        html.Button(id="merge-refresh-button", children="Refresh"),
-        html.Div(id="merge-graph-container"),
-    ]
-)
-
-
 @callback(
     Output("merge-graph-container", "children"),
     Input("merge-refresh-button", "n_clicks"),
     running=[Output("merge-refresh-button", "disabled"), True, False],
-    prevent_initial_call=True
 )
 def update_merge_graph(n_clicks: int):
-    if not n_clicks:
-        return html.H3("press refresh to acquire graph")
     data_frame = prepare_dataframe()
-    bar_chart_figure = px.bar(data_frame=data_frame, x="date", y="lines", color="files", hover_name="date",
-                              hover_data=["files", "lines", "comment"])
+    if data_frame.empty:
+        return html.H3("no merges found in the last 30 days")
+    bar_chart_figure = px.bar(
+        data_frame=data_frame,
+        x="date",
+        y="lines",
+        color="files",
+        hover_name="date",
+        hover_data=["files", "lines", "comment"]
+    )
     return [dcc.Graph(figure=bar_chart_figure)]
