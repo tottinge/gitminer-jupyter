@@ -23,16 +23,17 @@ layout = html.Div(
             'Last 90 days'
         ], value='Last 30 days'),
         # html.Div(id='page-content', children=[]),
-        dcc.Graph(id='page-content', figure={"data": []}),
-        html.Hr(),
-        html.H2("Source Data"),
         html.Div(
             id='id-most-committed-graph-holder',
             style={"display": "none"},
             children=[
-                DataTable(id='table-data')
+                dcc.Graph(id='id-commit-graph', figure={"data": []}),
             ]
         ),
+
+        html.Hr(),
+        html.H2("Source Data"),
+        DataTable(id='table-data')
     ]
 
 )
@@ -65,7 +66,7 @@ def calculate_usages(period: str):
 
 @callback(
     [
-        Output('page-content', 'figure'),
+        Output('id-commit-graph', 'figure'),
         Output('table-data', 'data'),
         Output('id-most-committed-graph-holder', 'style')
     ],
