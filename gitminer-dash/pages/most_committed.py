@@ -17,11 +17,26 @@ register_page(
 layout = html.Div(
     [
         html.H2("Most Often Committed Files"),
-        dcc.Dropdown(id='period-dropdown', options=[
-            'Last 30 days',
-            'Last 60 days',
-            'Last 90 days'
-        ], value='Last 30 days'),
+        html.Div(
+            style={"align-items": "center", "display": "flex"},
+            children=[
+                html.Label(children=["Period:"],
+                           htmlFor="id-period-dropdown",
+                           style={"display": "inline-block"}),
+                dcc.Dropdown(id='id-period-dropdown',
+                             options=[
+                                 'Last 30 days',
+                                 'Last 60 days',
+                                 'Last 90 days'
+                             ],
+                             value='Last 30 days',
+                             style={
+                                 "display": "inline-block",
+                                 "width": "100%",
+                             }),
+            ]
+        ),
+
         # html.Div(id='page-content', children=[]),
         html.Div(
             id='id-most-committed-graph-holder',
@@ -70,8 +85,8 @@ def calculate_usages(period: str):
         Output('table-data', 'data'),
         Output('id-most-committed-graph-holder', 'style')
     ],
-    Input('period-dropdown', 'value'),
-    running=(Output('period-dropdown', 'disabled'), True, False)
+    Input('id-period-dropdown', 'value'),
+    running=(Output('id-period-dropdown', 'disabled'), True, False)
 )
 def populate_graph(period_input):
     if not period_input:
