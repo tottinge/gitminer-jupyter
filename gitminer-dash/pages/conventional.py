@@ -71,13 +71,18 @@ def prepare_data() -> DataFrame:
         if filename in file_set
     ]
     df = pd.DataFrame(data_source, columns=["file", "reason", "count"])
-
     return df
 
 
 def make_figure(df: DataFrame):
-    figure = px.bar(df,
-                    x="file",
-                    y="count",
-                    color="reason",
-                    color_discrete_map=color_choices)
+    """
+    we're not using this yet, but will when we have the data working
+    as we want it.
+    """
+    return px.bar(
+        df,
+        x="file",
+        y="count",
+        color="reason",
+        color_discrete_map=color_choices
+    )
