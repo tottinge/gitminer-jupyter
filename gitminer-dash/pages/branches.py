@@ -1,6 +1,7 @@
-from dash import html, register_page
+from dash import html
 
-register_page(__name__)
+# Comment to keep page from rendering
+# register_page(__name__)
 
 layout = html.Div(
     [
