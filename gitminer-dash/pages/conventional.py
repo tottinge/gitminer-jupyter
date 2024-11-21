@@ -6,6 +6,7 @@ import pandas as pd
 import plotly.express as px
 from dash import html, register_page, callback, Output, Input
 from dash.dash_table import DataTable
+from dash.dcc import Graph
 from pandas import DataFrame
 
 import data
@@ -26,18 +27,34 @@ color_choices = {
 
 layout = html.Div(
     [
-        html.H2(id="id-conventional-h2", children="This is the conventional page"),
-        DataTable(id="id-conventional-table"),
+        html.H2(
+            id="id-conventional-h2",
+            children="This is the conventional page"
+        ),
+        html.Button(
+            id="id-conventional-refresh-button",
+            children="Refresh"
+        ),
+        Graph(id="id-conventional-graph"),
+        DataTable(
+            id="id-conventional-table",
+            columns=[{"name": i, "id": i} for i in ["file", "reason", "count"]],
+            data=[]
+        ),
     ]
 )
 
 
 @callback(
-    Output("id-conventional-table", "data"),
-    Input("id-conventional-table", "n_clicks")
+    [
+        Output("id-conventional-table", "data"),
+        Output("id-conventional-graph", "figure")
+    ],
+    Input("id-conventional-refresh-button", "n_clicks")
 )
 def update_conventional_table(n_clicks):
-    return [prepare_data().to_dict("records")]
+    dataframe = prepare_data()
+    return dataframe.to_dict("records"), make_figure(dataframe)
 
 
 conventional_commit_match_pattern = re.compile(r'^(\w+)[!(:]')
@@ -71,6 +88,7 @@ def prepare_data() -> DataFrame:
         if filename in file_set
     ]
     df = pd.DataFrame(data_source, columns=["file", "reason", "count"])
+    print(df)
     return df
 
 
