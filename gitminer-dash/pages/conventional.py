@@ -48,7 +48,6 @@ def prepare_data() -> DataFrame:
     # this is all just pasted in from cells in a python notebook
     # It's hideous, but we can fix that.
 
-    repo = data.get_repo()
     start = datetime.now().astimezone() - timedelta(weeks=52)
     commit_set = data.commits_in_period(start, datetime.now().astimezone())
 
