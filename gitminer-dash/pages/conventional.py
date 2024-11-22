@@ -65,6 +65,10 @@ def prepare_data() -> DataFrame:
     # this is all just pasted in from cells in a python notebook
     # It's hideous, but we can fix that.
 
+    # This would be more generally useful by date than file. When one clicks on a
+    # bar for a given date, expanding to a list of files like this might
+    # be useful.
+
     start = datetime.now().astimezone() - timedelta(weeks=52)
     commit_set = data.commits_in_period(start, datetime.now().astimezone())
 
