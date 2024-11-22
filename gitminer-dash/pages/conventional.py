@@ -65,6 +65,16 @@ conventional_commit_match_pattern = re.compile(r'^(\w+)[!(:]')
 categories = {"build", "chore", "ci", "docs", "feat", "fix", "merge", "perf", "refactor", "revert", "style", "test"}
 
 
+def normalize_intent(intent: str):
+    lower = intent.lower()
+    if lower in categories:
+        return lower
+    for name in categories:
+        if lower in name or name in lower:
+            return name
+    return "unknown"
+
+
 def prepare_changes_by_date(weeks=12) -> DataFrame:
     today = datetime.today().astimezone()
     start = today - timedelta(weeks=weeks)
@@ -73,7 +83,7 @@ def prepare_changes_by_date(weeks=12) -> DataFrame:
     for commit in data.commits_in_period(start, today):
         match = conventional_commit_match_pattern.match(commit.message)
         if match:
-            intent = match.group(1)
+            intent = normalize_intent(match.group(1))
             daily_change_counter[(commit.committed_datetime.date(), intent)] += 1
 
     dataset = sorted(
