@@ -29,7 +29,7 @@ layout = html.Div(
     [
         html.H2(
             id="id-conventional-h2",
-            children="This is the conventional page"
+            children="Change Type by Conventional Commit Messages"
         ),
         html.Button(
             id="id-conventional-refresh-button",
@@ -99,6 +99,7 @@ def make_figure(df: DataFrame):
     """
     return px.bar(
         df,
+        height=500,
         x="file",
         y="count",
         color="reason",
