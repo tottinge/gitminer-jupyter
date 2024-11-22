@@ -38,9 +38,11 @@ layout = html.Div(
         Graph(id="id-conventional-graph"),
         DataTable(
             id="id-conventional-table",
-            columns=[{"name": i, "id": i} for i in ["file", "reason", "count"]],
+            columns=[{"name": i, "id": i} for i in ["date", "reason", "count"]],
             data=[]
         ),
+
+        Graph(id="id-conventional-summary-graph")
     ]
 )
 
@@ -48,20 +50,47 @@ layout = html.Div(
 @callback(
     [
         Output("id-conventional-table", "data"),
-        Output("id-conventional-graph", "figure")
+        Output("id-conventional-graph", "figure"),
+        # Output("id-conventional-summary-graph", "figure")
     ],
     Input("id-conventional-refresh-button", "n_clicks")
 )
 def update_conventional_table(n_clicks):
-    dataframe = prepare_data()
-    return dataframe.to_dict("records"), make_figure(dataframe)
+    dataframe = prepare_changes_by_date()
+    return dataframe.to_dict("records"), make_figure(dataframe)  # , make_summary_figure(dataframe))
 
 
 conventional_commit_match_pattern = re.compile(r'^(\w+)[!(:]')
+
 categories = {"build", "chore", "ci", "docs", "feat", "fix", "merge", "perf", "refactor", "revert", "style", "test"}
 
 
-def prepare_data() -> DataFrame:
+def prepare_changes_by_date(weeks=12) -> DataFrame:
+    today = datetime.today().astimezone()
+    start = today - timedelta(weeks=weeks)
+
+    daily_change_counter = Counter()
+    for commit in data.commits_in_period(start, today):
+        match = conventional_commit_match_pattern.match(commit.message)
+        if match:
+            intent = match.group(1)
+            daily_change_counter[(commit.committed_datetime.date(), intent)] += 1
+
+    dataset = sorted(
+        (date, intent, count)
+        for ((date, intent), count) in daily_change_counter.items()
+    )
+    return DataFrame(dataset, columns=["date", "reason", "count"])
+
+
+def make_summary_figure(dataframe):
+    ...
+
+
+def prepare_changes_by_file() -> DataFrame:
+    """
+
+    """
     # this is all just pasted in from cells in a python notebook
     # It's hideous, but we can fix that.
 
@@ -72,23 +101,23 @@ def prepare_data() -> DataFrame:
     start = datetime.now().astimezone() - timedelta(weeks=52)
     commit_set = data.commits_in_period(start, datetime.now().astimezone())
 
-    counter = Counter()
+    filename_intent_counter = Counter()
     for commit in commit_set:
         match = conventional_commit_match_pattern.match(commit.message)
         intent = "unknown"
         if match and match.group(1) in categories:
             intent = match.group(1)
         for filename in commit.stats.files.keys():
-            counter[(filename, intent)] += 1
+            filename_intent_counter[(filename, intent)] += 1
 
     most_changed_counter = Counter()
-    for (filename, _), count in counter.items():
+    for (filename, _), count in filename_intent_counter.items():
         most_changed_counter[filename] += count
     file_set = {file for file, reason in most_changed_counter.most_common(30)}
 
     data_source = [
         (filename, reason, value)
-        for ((filename, reason), value) in counter.items()
+        for ((filename, reason), value) in filename_intent_counter.items()
         if filename in file_set
     ]
     df = pd.DataFrame(data_source, columns=["file", "reason", "count"])
@@ -104,7 +133,7 @@ def make_figure(df: DataFrame):
     return px.bar(
         df,
         height=500,
-        x="file",
+        x="date",
         y="count",
         color="reason",
         color_discrete_map=color_choices
