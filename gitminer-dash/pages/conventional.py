@@ -131,7 +131,6 @@ def prepare_changes_by_file() -> DataFrame:
         if filename in file_set
     ]
     df = pd.DataFrame(data_source, columns=["file", "reason", "count"])
-    print(df)
     return df
 
 
