@@ -14,7 +14,7 @@ from data import get_repo
 register_page(
     path="/",  # this is the root page (for now)
     module=__name__,  # Where it's found
-    name="Change Types",  # Menu item name
+    name="Change Types By Tag",  # Menu item name
 )
 
 
@@ -32,10 +32,12 @@ def prepared_data_frame():
 
 layout = html.Div(
     [
+        html.P(
+            id="id-no-data-message",
+            children="No tags found in repository."
+        ),
         html.Div(id="id-graph-container",
-                 children=[dcc.Graph(id="local_graph"),
-                           html.P(id="id-no-data-message", children="No data available."),
-                           ],
+                 children=[dcc.Graph(id="id-local_graph")]
                  ),
         html.Hr(),
         html.H2("Source Data"),
@@ -46,7 +48,7 @@ layout = html.Div(
 
 @callback(
     [
-        Output("local_graph", "figure"),
+        Output("id-local_graph", "figure"),
         Output("id-data-table", "data"),
         Output("id-graph-container", "style"),
         Output("id-no-data-message", "style")
