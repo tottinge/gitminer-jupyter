@@ -67,7 +67,10 @@ def handle_click_on_conventional_graph(click_data):
     start = datetime.strptime(date_label, "%Y-%m-%d").astimezone()
     end = start + timedelta(days=1)
     result_data = [
-        dict(date=commit.committed_datetime.strftime('%b %d %H:%M'), message=commit.message)
+        dict(
+            date=commit.committed_datetime.strftime('%b %d %H:%M'),
+            message=commit.message
+        )
         for commit in data.commits_in_period(start, end)
     ]
     return result_data
