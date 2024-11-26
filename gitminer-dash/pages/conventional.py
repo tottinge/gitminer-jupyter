@@ -37,26 +37,40 @@ layout = html.Div(
         Graph(id="id-conventional-graph"),
         DataTable(
             id="id-conventional-table",
-            columns=[{"name": i, "id": i} for i in ["date", "reason", "count"]],
+            columns=[{"name": i, "id": i} for i in ["date", "message"]],
+            style_cell={'textAlign': 'left'},
             data=[]
         ),
-
-        Graph(id="id-conventional-summary-graph")
     ]
 )
 
 
 @callback(
-    [
-        Output("id-conventional-table", "data"),
-        Output("id-conventional-graph", "figure"),
-        # Output("id-conventional-summary-graph", "figure")
-    ],
-    Input("id-conventional-refresh-button", "n_clicks")
+    Output("id-conventional-graph", "figure"),
+    Input("id-conventional-refresh-button", "n_clicks"),
 )
-def update_conventional_table(n_clicks):
+def update_conventional_table(_):
     dataframe = prepare_changes_by_date()
-    return dataframe.to_dict("records"), make_figure(dataframe)  # , make_summary_figure(dataframe))
+    return make_figure(dataframe)  # , make_summary_figure(dataframe))
+
+
+@callback(
+    Output("id-conventional-table", "data"),
+    Input("id-conventional-graph", "clickData"),
+    prevent_initial_call=True
+)
+def handle_click_on_conventional_graph(click_data):
+    if not click_data:
+        return [dict(date=datetime.now(), message="No data at thsi time")]
+    date_label = click_data["points"][0]['label']
+
+    start = datetime.strptime(date_label, "%Y-%m-%d").astimezone()
+    end = start + timedelta(days=1)
+    result_data = [
+        dict(date=commit.committed_datetime, message=commit.message)
+        for commit in data.commits_in_period(start, end)
+    ]
+    return result_data
 
 
 conventional_commit_match_pattern = re.compile(r'^(\w+)[!(:]')
@@ -90,10 +104,6 @@ def prepare_changes_by_date(weeks=12) -> DataFrame:
         for ((date, intent), count) in daily_change_counter.items()
     )
     return DataFrame(dataset, columns=["date", "reason", "count"])
-
-
-def make_summary_figure(dataframe):
-    ...
 
 
 def make_figure(df: DataFrame):
