@@ -61,6 +61,4 @@ def create_affinity_list(start: datetime, end: datetime) -> list[dict[str, str]]
 def handle_period_selection(period: str):
     ending = datetime.today().astimezone()
     starting = ending - timedelta(days=periods[period])
-    data = create_affinity_list(starting, ending)
-    print("New Run\n\n", data)
-    return data
+    return create_affinity_list(starting, ending)
