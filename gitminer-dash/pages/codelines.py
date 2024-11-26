@@ -8,11 +8,11 @@ from pandas import DataFrame
 from data import commits_in_period
 from .stacking import SequenceStacker
 
-register_page(module=__name__, title="Code Lines")
+register_page(module=__name__, title="Concurrent Efforts")
 
 layout = html.Div(
     [
-        html.H2("Lines of Code"),
+        html.H2("Concurrent Effort"),
         html.Button(id="code-lines-refresh-button", children=["Refresh"]),
         html.Div(
             id="id-code-lines-container",
@@ -23,12 +23,13 @@ layout = html.Div(
         ),
         html.P(id="code-lines-description-1", children=[
             "In git, commits reference their parent. "
-            "A code line is a series of single-parent "
-            "(non-merge) commits where each one references the one before it."
+            "A concurrent effort is a series of single-parent "
+            "(non-merge) commits where each one references the one before it. "
+            "These may be branched or unbranched."
         ]),
         html.P(id="code-lines-description-2", children=[
-            "By examining code lines, we can see how much concurrent activity is taking place "
-            "and if the developers commit often or seldom (relative to other code lines)."
+            "We visualize how much concurrent activity is taking place "
+            "and if the developers commit often or seldom (relative to other code efforts)."
         ])
 
     ]

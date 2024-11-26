@@ -11,6 +11,7 @@ import data
 
 register_page(
     module=__name__,  # Where it's found
+    path="/",  # this is the root page (for now)
     name="Most Committed",  # Menu item name
 )
 

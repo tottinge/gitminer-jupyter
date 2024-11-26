@@ -2,7 +2,6 @@ import re
 from collections import Counter
 from datetime import datetime, timedelta
 
-import pandas as pd
 import plotly.express as px
 from dash import html, register_page, callback, Output, Input
 from dash.dash_table import DataTable
@@ -95,43 +94,6 @@ def prepare_changes_by_date(weeks=12) -> DataFrame:
 
 def make_summary_figure(dataframe):
     ...
-
-
-def prepare_changes_by_file() -> DataFrame:
-    """
-
-    """
-    # this is all just pasted in from cells in a python notebook
-    # It's hideous, but we can fix that.
-
-    # This would be more generally useful by date than file. When one clicks on a
-    # bar for a given date, expanding to a list of files like this might
-    # be useful.
-
-    start = datetime.now().astimezone() - timedelta(weeks=52)
-    commit_set = data.commits_in_period(start, datetime.now().astimezone())
-
-    filename_intent_counter = Counter()
-    for commit in commit_set:
-        match = conventional_commit_match_pattern.match(commit.message)
-        intent = "unknown"
-        if match and match.group(1) in categories:
-            intent = match.group(1)
-        for filename in commit.stats.files.keys():
-            filename_intent_counter[(filename, intent)] += 1
-
-    most_changed_counter = Counter()
-    for (filename, _), count in filename_intent_counter.items():
-        most_changed_counter[filename] += count
-    file_set = {file for file, reason in most_changed_counter.most_common(30)}
-
-    data_source = [
-        (filename, reason, value)
-        for ((filename, reason), value) in filename_intent_counter.items()
-        if filename in file_set
-    ]
-    df = pd.DataFrame(data_source, columns=["file", "reason", "count"])
-    return df
 
 
 def make_figure(df: DataFrame):

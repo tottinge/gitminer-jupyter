@@ -12,7 +12,6 @@ from algorithms.sorted_tags import get_most_recent_tags
 from data import get_repo
 
 register_page(
-    path="/",  # this is the root page (for now)
     module=__name__,  # Where it's found
     name="Change Types By Tag",  # Menu item name
 )
