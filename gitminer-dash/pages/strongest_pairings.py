@@ -28,7 +28,7 @@ layout = html.Div(
         DataTable(
             id="id-strongest-pairings-table",
             columns=[
-                {"name": i, "id": i}
+                {"name": i, "id": i, 'presentation': 'markdown'}
                 for i in ['Affinity', 'Pairing']
             ],
             style_cell={'textAlign': 'left'},
@@ -48,7 +48,7 @@ def create_affinity_list(start: datetime, end: datetime) -> list[dict[str, str]]
             ordered_key = tuple(sorted(combo))
             affinities[ordered_key] += 1 / files_in_commit
     affinity_first_list = [
-        dict(Affinity=f"{value:6.2f}", Pairing=" & ".join(key))
+        dict(Affinity=f"{value:6.2f}", Pairing="\n\n".join(key))
         for key, value in affinities.items()
     ]
     sorted_by_strength = sorted(affinity_first_list, reverse=True, key=lambda x: x['Affinity'])
