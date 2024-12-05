@@ -100,7 +100,7 @@ def update_code_lines_graph(_: int):
             first=early_timestamp.isoformat(),
             last=late_timestamp.isoformat(),
             elevation=height,
-            commits=commit_counts,
+            commit_counts=commit_counts,
             head=earliest['sha'],
             tail=latest['sha'],
             duration=duration.days,
@@ -109,7 +109,15 @@ def update_code_lines_graph(_: int):
 
     df = DataFrame(
         rows,
-        columns=['first', 'last', 'elevation', 'commit_counts', 'head', 'tail', 'duration', 'density']
+        columns=[
+            'first',
+            'last',
+            'elevation',
+            'commit_counts',
+            'head',
+            'tail',
+            'duration',
+            'density']
     )
     figure = px.timeline(
         data_frame=df,
