@@ -65,7 +65,7 @@ def handle_click_on_conventional_graph(click_data):
     date_label = click_data["points"][0]['label']
 
     start = datetime.strptime(date_label, "%Y-%m-%d").astimezone()
-    end = start + timedelta(days=1)
+    end = start + timedelta(hours=23, minutes=59, seconds=59)
     result_data = [
         dict(
             date=commit.committed_datetime.strftime('%b %d %H:%M'),
