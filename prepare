@@ -1,5 +1,8 @@
 #! /bin/bash -e
+source venv/bin/activate
 git pull -r
 pip install --upgrade pip
 pip install -q -r requirements.txt
+pytest
+echo "Completed successfully."
 
